@@ -129,13 +129,5 @@ cursor.execute('''
                ''')
 conn.commit()
 
-
-
-cursor.execute('''
-    SELECT * 
-    FROM users
-               ''')
-result = cursor.fetchall()
-print(result)
 cursor.close()
 conn.close()
