@@ -1,5 +1,6 @@
+import psycopg2
+# Подключение к БД
 def get_connection():
-    import psycopg2
     conn = psycopg2.connect(
         dbname="postgres",
         user="postgres",
