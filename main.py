@@ -22,29 +22,31 @@ while(True):
     if(number_of_acion == 0):
         break
     if(number_of_acion == 1):
-        title = input()
-        performers = input()
-        album = input()
-        duration = int(input())
+        title = input("Введите название песни: ")
+        performers = input("Введите название иполнителя: ")
+        album = input("Введите название альбома: ")
+        duration = int(input("Введите длительность трека: "))
         print(Track.Create(title, performers, album, duration))
     elif(number_of_acion == 2):
-        print(Track.RetrieveAll())
+        ans = Track.RetrieveAll()
+        for i in ans:
+            print(i)
     elif(number_of_acion == 3):
-        id = int(input())
+        id = int(input("Введите идентификационный номер: "))
         print(Track.Retrieve(id))
     elif(number_of_acion == 4):
-        id = int(input())
-        title = input()
-        performers = input()
-        album = input()
-        duration = int(input())     
+        id = int(input("Введите идентификационный номер: "))
+        title = input("Введите название песни: ")
+        performers = input("Введите название иполнителя: ")
+        album = input("Введите название альбома: ")
+        duration = int(input("Введите длительность трека: "))   
         print(Track.Update(id, title, performers, album, duration))   
     elif(number_of_acion == 5):
-        id = int(input())
+        id = int(input("Введите идентификационный номер: "))
         print(Track.Delete(id))
     elif(number_of_acion == 6):
         int_list = []
-        for element in input().split():
+        for element in input("Введите идентификационный номер: ").split():
             int_list.append((int(element),))
         print(Track.DeleteMany(int_list))
 

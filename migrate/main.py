@@ -1,4 +1,6 @@
 import psycopg2
+from datetime import datetime, timezone
+
 
 conn = psycopg2.connect(
     dbname="postgres",
@@ -17,7 +19,6 @@ cursor.execute('''
                email VARCHAR(255) UNIQUE
                );
                ''')
-conn.commit()
 
 cursor.execute('''
     CREATE TABLE playlist (
@@ -26,7 +27,6 @@ cursor.execute('''
                user_id INTEGER REFERENCES users(user_id)
                );
                ''')
-conn.commit()
 
 cursor.execute('''
     CREATE TABLE track (
@@ -34,18 +34,18 @@ cursor.execute('''
                title VARCHAR(255) NOT NULL,
                performers VARCHAR(255) NOT NULL,
                album VARCHAR(255),
-               duration INTEGER CHECK(duration > 0)
+               duration SMALLINT CHECK (duration > 0)
                );
                ''')
-conn.commit()
 
 cursor.execute('''
     CREATE TABLE playlist_track (
                track_id INTEGER REFERENCES track(track_id),
-               playlist_id INTEGER REFERENCES playlist(playlist_id)
+               playlist_id INTEGER REFERENCES playlist(playlist_id),
+               order_num INTEGER  NOT NULL,
+               created_at timestamp NOT NULL default now()
                );
                ''')
-conn.commit()
 
 
 cursor.execute('''
@@ -62,7 +62,6 @@ cursor.execute('''
         ('Ivan', '8adac786fdbd70ba1fd8b8d40fb21875429882d4b41cb2a556f89f396b8ae72247613f603b9d0e6c53898186651cfd8f27f72cf6664613e42d5206c843460a7f', 'Ivan@music.ru'),
         ('Maxim', '15ff60f75add6975e19653949ef74388f53ea1261b372a31c0bcd06df28f2c8d4f6ce983f19cc1ef70fb67419ccb2a144600bfb3a41993be422c09eba8783858', 'Maxim@music.ru');
                ''')
-conn.commit()
 
 cursor.execute('''
     INSERT INTO playlist (title, user_id)
@@ -79,7 +78,6 @@ cursor.execute('''
         ('MUSIC', (SELECT user_id FROM users WHERE username = 'Ivan')),
         ('THE BEST', (SELECT user_id FROM users WHERE username = 'Maxim'));
                ''')
-conn.commit()
 
 cursor.execute('''
     INSERT INTO track (title, performers, album, duration)
@@ -96,37 +94,36 @@ cursor.execute('''
                ('Believer', 'Imagine Dragons', 'Throwback Hits', 204),
                ('Lovely', 'Billie Eilish, Khalid', 'Dont Smile at Me', 200 );
                ''')
-conn.commit()
 
 cursor.execute('''
-    INSERT INTO playlist_track (track_id, playlist_id)
+    INSERT INTO playlist_track (track_id, playlist_id, order_num, created_at)
     VALUES
-               ((SELECT track_id FROM track WHERE title ='Люди') , (SELECT playlist_id FROM playlist WHERE title ='MY FAVOURITE' )),
-               ((SELECT track_id FROM track WHERE title ='Riptide') , (SELECT playlist_id FROM playlist WHERE title ='MY FAVOURITE' )),
-               ((SELECT track_id FROM track WHERE title ='Believer') , (SELECT playlist_id FROM playlist WHERE title ='MY FAVOURITE' )),
-               ((SELECT track_id FROM track WHERE title ='Vacation') , (SELECT playlist_id FROM playlist WHERE title ='MY FAVOURITE' )),
-               ((SELECT track_id FROM track WHERE title ='Ainsi bas la vida') , (SELECT playlist_id FROM playlist WHERE title ='ROAD' )),
-               ((SELECT track_id FROM track WHERE title ='The Real Slim Shady') , (SELECT playlist_id FROM playlist WHERE title ='ROAD' )),
-               ((SELECT track_id FROM track WHERE title ='Wellerman Sea Shanty') , (SELECT playlist_id FROM playlist WHERE title ='ROAD' )),
-               ((SELECT track_id FROM track WHERE title ='Wellerman Sea Shanty') , (SELECT playlist_id FROM playlist WHERE title ='BEST' )),
-               ((SELECT track_id FROM track WHERE title ='Mockingbird') , (SELECT playlist_id FROM playlist WHERE title ='BEST' )),
-               ((SELECT track_id FROM track WHERE title ='The Real Slim Shady') , (SELECT playlist_id FROM playlist WHERE title ='I LIKE IT' )),
-               ((SELECT track_id FROM track WHERE title ='Vacation') , (SELECT playlist_id FROM playlist WHERE title ='I LIKE IT' )),
-               ((SELECT track_id FROM track WHERE title ='Ainsi bas la vida') , (SELECT playlist_id FROM playlist WHERE title ='GOOD' )),
-               ((SELECT track_id FROM track WHERE title ='Lovely') , (SELECT playlist_id FROM playlist WHERE title ='CALM' )),
-               ((SELECT track_id FROM track WHERE title ='Mockingbird') , (SELECT playlist_id FROM playlist WHERE title ='IN CONCENTRATION' )),
-               ((SELECT track_id FROM track WHERE title ='Riptide') , (SELECT playlist_id FROM playlist WHERE title ='IN CONCENTRATION' )),
-               ((SELECT track_id FROM track WHERE title ='Riptide') , (SELECT playlist_id FROM playlist WHERE title ='DANCE' )),
-               ((SELECT track_id FROM track WHERE title ='Tous les mêmes') , (SELECT playlist_id FROM playlist WHERE title ='DANCE' )),
-               ((SELECT track_id FROM track WHERE title ='Ainsi bas la vida') , (SELECT playlist_id FROM playlist WHERE title ='NEW' )),
-               ((SELECT track_id FROM track WHERE title ='Wellerman Sea Shanty') , (SELECT playlist_id FROM playlist WHERE title ='NEW' )),
-               ((SELECT track_id FROM track WHERE title ='Wellerman Sea Shanty') , (SELECT playlist_id FROM playlist WHERE title ='MUSIC' )),
-               ((SELECT track_id FROM track WHERE title ='Lovely') , (SELECT playlist_id FROM playlist WHERE title ='MUSIC' )),
-               ((SELECT track_id FROM track WHERE title ='Люди') , (SELECT playlist_id FROM playlist WHERE title ='MUSIC' )),
-               ((SELECT track_id FROM track WHERE title ='Люди') , (SELECT playlist_id FROM playlist WHERE title ='THE BEST' )),
-               ((SELECT track_id FROM track WHERE title ='Wellerman Sea Shanty') , (SELECT playlist_id FROM playlist WHERE title ='THE BEST' )),
-               ((SELECT track_id FROM track WHERE title ='Лесник') , (SELECT playlist_id FROM playlist WHERE title ='THE BEST' ));
-               ''')
+               ((SELECT track_id FROM track WHERE title ='Люди') , (SELECT playlist_id FROM playlist WHERE title ='MY FAVOURITE' ), 1, %s),
+               ((SELECT track_id FROM track WHERE title ='Riptide') , (SELECT playlist_id FROM playlist WHERE title ='MY FAVOURITE' ), 2, %s),
+               ((SELECT track_id FROM track WHERE title ='Vacation') , (SELECT playlist_id FROM playlist WHERE title ='MY FAVOURITE' ), 4, %s),
+               ((SELECT track_id FROM track WHERE title ='Believer') , (SELECT playlist_id FROM playlist WHERE title ='MY FAVOURITE' ), 3, %s),
+               ((SELECT track_id FROM track WHERE title ='Ainsi bas la vida') , (SELECT playlist_id FROM playlist WHERE title ='ROAD' ), 5, %s),
+               ((SELECT track_id FROM track WHERE title ='The Real Slim Shady') , (SELECT playlist_id FROM playlist WHERE title ='ROAD' ), 1, %s),
+               ((SELECT track_id FROM track WHERE title ='Wellerman Sea Shanty') , (SELECT playlist_id FROM playlist WHERE title ='ROAD' ), 2, %s),
+               ((SELECT track_id FROM track WHERE title ='Wellerman Sea Shanty') , (SELECT playlist_id FROM playlist WHERE title ='BEST' ), 1, %s),
+               ((SELECT track_id FROM track WHERE title ='Mockingbird') , (SELECT playlist_id FROM playlist WHERE title ='BEST' ), 2, %s),
+               ((SELECT track_id FROM track WHERE title ='The Real Slim Shady') , (SELECT playlist_id FROM playlist WHERE title ='I LIKE IT' ), 1, %s),
+               ((SELECT track_id FROM track WHERE title ='Vacation') , (SELECT playlist_id FROM playlist WHERE title ='I LIKE IT' ), 2, %s),
+               ((SELECT track_id FROM track WHERE title ='Ainsi bas la vida') , (SELECT playlist_id FROM playlist WHERE title ='GOOD' ), 1, %s),
+               ((SELECT track_id FROM track WHERE title ='Lovely') , (SELECT playlist_id FROM playlist WHERE title ='CALM' ), 1, %s),
+               ((SELECT track_id FROM track WHERE title ='Mockingbird') , (SELECT playlist_id FROM playlist WHERE title ='IN CONCENTRATION' ), 1, %s),
+               ((SELECT track_id FROM track WHERE title ='Riptide') , (SELECT playlist_id FROM playlist WHERE title ='IN CONCENTRATION' ), 2, %s),
+               ((SELECT track_id FROM track WHERE title ='Riptide') , (SELECT playlist_id FROM playlist WHERE title ='DANCE' ), 1, %s),
+               ((SELECT track_id FROM track WHERE title ='Tous les mêmes') , (SELECT playlist_id FROM playlist WHERE title ='DANCE' ), 2, %s),
+               ((SELECT track_id FROM track WHERE title ='Ainsi bas la vida') , (SELECT playlist_id FROM playlist WHERE title ='NEW' ), 1, %s),
+               ((SELECT track_id FROM track WHERE title ='Wellerman Sea Shanty') , (SELECT playlist_id FROM playlist WHERE title ='NEW' ), 2,%s),
+               ((SELECT track_id FROM track WHERE title ='Wellerman Sea Shanty') , (SELECT playlist_id FROM playlist WHERE title ='MUSIC' ), 1, %s),
+               ((SELECT track_id FROM track WHERE title ='Lovely') , (SELECT playlist_id FROM playlist WHERE title ='MUSIC' ), 2, %s),
+               ((SELECT track_id FROM track WHERE title ='Люди') , (SELECT playlist_id FROM playlist WHERE title ='MUSIC' ), 3, %s),
+               ((SELECT track_id FROM track WHERE title ='Люди') , (SELECT playlist_id FROM playlist WHERE title ='THE BEST' ), 1, %s),
+               ((SELECT track_id FROM track WHERE title ='Wellerman Sea Shanty') , (SELECT playlist_id FROM playlist WHERE title ='THE BEST' ), 2, %s),
+               ((SELECT track_id FROM track WHERE title ='Лесник') , (SELECT playlist_id FROM playlist WHERE title ='THE BEST' ), 3, %s);
+               ''', (str(datetime.now(timezone.utc)),str(datetime.now(timezone.utc)),str(datetime.now(timezone.utc)),str(datetime.now(timezone.utc)),str(datetime.now(timezone.utc)),str(datetime.now(timezone.utc)),str(datetime.now(timezone.utc)),str(datetime.now(timezone.utc)),str(datetime.now(timezone.utc)),str(datetime.now(timezone.utc)),str(datetime.now(timezone.utc)),str(datetime.now(timezone.utc)),str(datetime.now(timezone.utc)),str(datetime.now(timezone.utc)),str(datetime.now(timezone.utc)),str(datetime.now(timezone.utc)),str(datetime.now(timezone.utc)),str(datetime.now(timezone.utc)),str(datetime.now(timezone.utc)),str(datetime.now(timezone.utc)),str(datetime.now(timezone.utc)),str(datetime.now(timezone.utc)),str(datetime.now(timezone.utc)),str(datetime.now(timezone.utc)),str(datetime.now(timezone.utc)),))
 conn.commit()
 
 cursor.close()

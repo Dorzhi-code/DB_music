@@ -32,6 +32,8 @@ def RetrieveAll():
             FROM track; 
                     ''')
         result = cursor.fetchall()
+        #for i in result:
+        #    print(i)
         cursor.close()
         conn.close()
         return result
@@ -108,6 +110,17 @@ def DeleteMany(list_of_id):
         return result    
     except:
         return "Failed to delete records in track table"
+def Search(id = 0, title = "", performers = "", album = "", duration = 0):
+    from CRUID import Connect
+    cursor,conn = Connect.get_connection()
+    cursor.execute('''
+        SELECT * 
+        FROM track
+        WHERE * LIKE '%'
+                   ''')
+    cursor.close()
+    conn.close()
+
 
 
 
