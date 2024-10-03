@@ -28,25 +28,25 @@ def TrackSearch(id = 0, title = "", performers ="", album="", duration= 0, numbe
             cursor.execute('''
                 SELECT *
                 FROM track
-                WHERE duration = %s AND title LIKE %s AND  performers LIKE %s AND album LIKE %s
+                WHERE duration = %s AND LOWER(title) LIKE %s AND  LOWER(performers) LIKE %s AND LOWER(album) LIKE %s
                 LIMIT %s
                 OFFSET %s        
-                        ''', (duration, '%'+title+'%', '%'+performers+'%', '%'+album+'%', number_of_results, offset))            
+                        ''', (duration, '%'+str.lower(title)+'%', '%'+ str.lower(performers)+'%', '%'+str.lower(album)+'%', number_of_results, offset))            
     else:
         cursor.execute('''
                     SELECT *    
                     FROM track 
-                    WHERE title LIKE %s AND  performers LIKE %s AND album LIKE %s
+                    WHERE LOWER(title) LIKE %s AND  LOWER(performers) LIKE %s AND LOWER(album) LIKE %s
                     LIMIT %s
                     OFFSET %s                         
                        '''
-                       , ('%'+title+'%', '%'+performers+'%', '%'+album+'%', number_of_results, offset))
+                       , ('%'+str.lower(title)+'%', '%'+str.lower(performers)+'%', '%'+str.lower(album)+'%', number_of_results, offset))
         
     result = cursor.fetchall()
     cursor.close()
     conn.close()
     return result
 
-res = TrackSearch(performers="", offset=0)
+res = TrackSearch(title="",performers="", offset=0)
 for i in res:
     print(i)

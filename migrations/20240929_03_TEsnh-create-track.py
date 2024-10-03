@@ -11,7 +11,7 @@ steps = [
     CREATE TABLE track (
                track_id SERIAL PRIMARY KEY,
                title VARCHAR(255) NOT NULL,
-               performers VARCHAR(255) NOT NULL,
+               performers VARCHAR(400) NOT NULL,
                album VARCHAR(255),
                duration SMALLINT CHECK (duration > 0)
                );

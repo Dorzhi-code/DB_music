@@ -1,4 +1,6 @@
 from CRUID import Track
+import os
+import time
 # Получение номера действия
 def get_action_number():
     print("""
@@ -49,4 +51,6 @@ while(True):
         for element in input("Введите идентификационный номер: ").split():
             int_list.append((int(element),))
         print(Track.DeleteMany(int_list))
-
+    
+    #time.sleep(3)
+    #os.system('cls')
