@@ -58,7 +58,7 @@ def Retrieve(id):
         return "Failed to get record in track table"
 
 # Редактирование экземляра трека. На вход (int, string, string, string, int)
-# ? return id
+# ? return track_id
 def Update(id, title, performers, album, duration):
     try: 
         from CRUID import Connect
@@ -110,16 +110,7 @@ def DeleteMany(list_of_id):
         return result    
     except:
         return "Failed to delete records in track table"
-def Search(id = 0, title = "", performers = "", album = "", duration = 0):
-    from CRUID import Connect
-    cursor,conn = Connect.get_connection()
-    cursor.execute('''
-        SELECT * 
-        FROM track
-        WHERE * LIKE '%'
-                   ''')
-    cursor.close()
-    conn.close()
+
 
 
 

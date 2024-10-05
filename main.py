@@ -1,4 +1,5 @@
 from CRUID import Track
+from Search import main as search
 import os
 import time
 # Получение номера действия
@@ -10,7 +11,8 @@ def get_action_number():
             3 - Получить определенный трек по ключу
             4 - Редактирование трека
             5 - Удалить трек
-            6 - Удалить несколько треков            
+            6 - Удалить несколько треков     
+            7 - Поиск трека       
         """)
     while(True):
         try:
@@ -51,6 +53,18 @@ while(True):
         for element in input("Введите идентификационный номер: ").split():
             int_list.append((int(element),))
         print(Track.DeleteMany(int_list))
+    elif(number_of_acion == 7):
+        id = (input("Введите идентификационный номер: "))
+        title = input("Введите название песни: ")
+        performers = input("Введите название иполнителя: ")
+        album = input("Введите название альбома: ")
+        duration = (input("Введите длительность трека: ")) 
+        number_of_results = input("Введите количества выдаваемых результатов: ")
+        offset = input("Введите смещение: ")
+        ans = search.TrackSearch(track_id = id, title=title, performers=performers, album=album, duration=duration, number_of_results=number_of_results, offset=offset)
+        for i in ans:
+            print(i)
+
     
-    #time.sleep(3)
-    #os.system('cls')
+    time.sleep(3)
+    os.system('cls')

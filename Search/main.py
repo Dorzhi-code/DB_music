@@ -1,52 +1,36 @@
-def TrackSearch(id = 0, title = "", performers ="", album="", duration= 0, number_of_results = 5, offset = 0):
-    import os
-    import sys
-    # Добавляем путь к директории проекта в sys.path
-    project_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), "C:\\Users\\Dorzhi\\source\\rep\\DB_music"))
-    sys.path.append(project_directory)  
-    from CRUID import Connect
-    cursor,conn = Connect.get_connection()
-    if(id):
-        cursor.execute('''
-            SELECT *
-            FROM track
-            WHERE id = %s
-            LIMIT %s
-            OFFSET %s                       
-                    ''', (id,number_of_results, offset))
-    elif(duration):
-        if(title == "" and performers == "" and album ==""):
-            cursor.execute('''
-                SELECT *
-                FROM track
-                WHERE duration = %s
-                LIMIT %s
-                OFFSET %s
-                           
-                        ''', (duration,number_of_results, offset))
+def TrackSearch(track_id = 0, title = "", performers ="", album="", duration= 0, number_of_results = 5, offset = 0):
+    try:
+        import os
+        import sys
+        # Добавляем путь к директории проекта в sys.path
+        project_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), "C:\\Users\\Dorzhi\\source\\rep\\DB_music"))
+        sys.path.append(project_directory)  
+        from CRUID import Connect
+        cursor,conn = Connect.get_connection()
+        query = "SELECT * FROM track WHERE TRUE"
+        param = []
+        if(track_id):
+            query += " AND track_id = %s"
+            param.append(track_id)
         else:
-            cursor.execute('''
-                SELECT *
-                FROM track
-                WHERE duration = %s AND LOWER(title) LIKE %s AND  LOWER(performers) LIKE %s AND LOWER(album) LIKE %s
-                LIMIT %s
-                OFFSET %s        
-                        ''', (duration, '%'+str.lower(title)+'%', '%'+ str.lower(performers)+'%', '%'+str.lower(album)+'%', number_of_results, offset))            
-    else:
-        cursor.execute('''
-                    SELECT *    
-                    FROM track 
-                    WHERE LOWER(title) LIKE %s AND  LOWER(performers) LIKE %s AND LOWER(album) LIKE %s
-                    LIMIT %s
-                    OFFSET %s                         
-                       '''
-                       , ('%'+str.lower(title)+'%', '%'+str.lower(performers)+'%', '%'+str.lower(album)+'%', number_of_results, offset))
-        
-    result = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    return result
+            if(duration):
+                query += " AND duration = %s"
+                param.append(duration)
+            query += " AND LOWER(title) LIKE %s AND  LOWER(performers) LIKE %s AND LOWER(album) LIKE %s"
+            param.append('%'+str.lower(title)+'%')
+            param.append('%'+ str.lower(performers)+'%')
+            param.append('%'+str.lower(album)+'%')
+        query += " LIMIT %s OFFSET %s"
+        param.append(number_of_results)
+        param.append(offset)            
+        cursor.execute(query, param)
+        result = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return result
+    except:
+        return "Failed to search records in track table"
 
-res = TrackSearch(title="",performers="", offset=0)
+res = TrackSearch(track_id=1,title="",performers="")
 for i in res:
     print(i)
