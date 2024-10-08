@@ -134,9 +134,11 @@ def GetAllParents(id):
     cursor.close()
     conn.close()
     return result
-result = GetAllParents(91)
-for i in result:
-    print(i)
+
+result = DeleteSubtree(65)
+# for i in result:
+#     print(i)
+
 
 
     
