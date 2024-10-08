@@ -3,9 +3,9 @@ def TrackSearch(track_id = 0, title = "", performers ="", album="", duration= 0,
         import os
         import sys
         # Добавляем путь к директории проекта в sys.path
-        project_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), "C:\\Users\\Dorzhi\\source\\rep\\DB_music"))
-        sys.path.append(project_directory)  
-        from CRUID import Connect
+        #project_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), "C:\\Users\\Dorzhi\\source\\rep\\DB_music"))
+        #sys.path.append(project_directory)  
+        import Connect
         cursor,conn = Connect.get_connection()
         query = "SELECT * FROM track WHERE TRUE"
         param = []
@@ -31,6 +31,6 @@ def TrackSearch(track_id = 0, title = "", performers ="", album="", duration= 0,
     except:
         return "Failed to search records in track table"
 
-res = TrackSearch(track_id=1,title="",performers="")
+res = TrackSearch(title="",performers="")
 for i in res:
     print(i)
