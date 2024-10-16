@@ -32,12 +32,19 @@ while(True):
         duration = int(input("Введите длительность трека: "))
         print(Track.Create(title, performers, album, duration))
     elif(number_of_acion == 2):
-        ans = Track.RetrieveAll()
-        for i in ans:
-            print(i)
+        from prettytable import PrettyTable
+        tracks = Track.RetrieveAll()
+        table = PrettyTable(['ID', 'Title', 'Performers', 'Album', 'Duration'])
+        for track in tracks:
+            table.add_row([track[0], track[1], track[2], track[3], track[4]])
+        print(table)
     elif(number_of_acion == 3):
+        from prettytable import PrettyTable
         id = int(input("Введите идентификационный номер: "))
-        print(Track.Retrieve(id))
+        track = Track.Retrieve(id)
+        table = PrettyTable(['ID', 'Title', 'Performers', 'Album', 'Duration'])
+        table.add_row([track[0][0], track[0][1], track[0][2], track[0][3], track[0][4]])
+        print(table)
     elif(number_of_acion == 4):
         id = int(input("Введите идентификационный номер: "))
         title = input("Введите название песни: ")
@@ -66,5 +73,5 @@ while(True):
             print(i)
 
     
-    time.sleep(3)
-    os.system('cls')
+    # time.sleep(3)
+    # os.system('cls')

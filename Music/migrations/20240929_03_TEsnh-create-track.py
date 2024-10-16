@@ -12,8 +12,9 @@ steps = [
                track_id SERIAL PRIMARY KEY,
                title VARCHAR(255) NOT NULL,
                performers VARCHAR(400) NOT NULL,
-               album VARCHAR(255),
-               duration SMALLINT CHECK (duration > 0)
+               album VARCHAR(255) NOT NULL,
+               duration SMALLINT NOT NULL CHECK (duration > 0),
+               created_at timestamp NOT NULL default now()            
                );
                ''')
 ]

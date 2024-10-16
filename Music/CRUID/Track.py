@@ -1,25 +1,31 @@
 # Создание экземляра трека. На вход: (string, string, string, int)
 # ? return id
-def Create(title, performers, album, duration):
+def Create(title, performers, album, duration ):
     try:
         from CRUID import Connect
         cursor,conn = Connect.get_connection()
+
+        title = title.strip()
+        performers = performers.strip()
+        album = album.strip()        
+        print(title)
+        print(performers)
+        print(album)
+        print(duration)
+
         cursor.execute('''           
             INSERT INTO track (title, performers, album, duration)
-            VALUES(%s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s)
             RETURNING track_id;            
-                    ''',
-                    (title, performers, album, duration)
-                    )
+                    ''', (title, performers, album, duration))
+        print(8)
         result = cursor.fetchall()
         conn.commit()
         cursor.close()
         conn.close()
-        print("close")
-        return "Successfully added with id = " + result
+        return ("Successfully added with id = " + str(result[0][0]))
     except:
         return "Failed to create record into track table"
-
 
 # Получение всех экземляров трека. 
 # ? return Array[Aray[track_id, title, performers, album, duration]]
@@ -63,6 +69,11 @@ def Update(id, title, performers, album, duration):
     try: 
         from CRUID import Connect
         cursor,conn = Connect.get_connection()
+        
+        title.strip()
+        performers.strip()
+        album.strip()
+        
         cursor.execute('''
             UPDATE track 
             SET (title, performers, album, duration) = (%s, %s, %s, %s)
@@ -73,7 +84,7 @@ def Update(id, title, performers, album, duration):
         result = cursor.fetchall()
         cursor.close()
         conn.close()
-        return result
+        return "Successfully updated with id = " + result
     except:
         return "Failed to edit record in track table"
 # Удаление экземляра трека. На вход (int)
@@ -90,7 +101,7 @@ def Delete(id):
         conn.commit()
         cursor.close()
         conn.close()
-        return result
+        return "Successfully deleted with id = " + result
     except:
         return "Failed to delete record in track table"
 # Удаление экземляров трека. На вход (Array[int])
@@ -107,11 +118,10 @@ def DeleteMany(list_of_id):
         conn.commit()
         cursor.close()
         conn.close()
-        return result    
+        print(result)
+        return ("Successfully deleted: " + str(result))
     except:
         return "Failed to delete records in track table"
-
-
 
 
 
