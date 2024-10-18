@@ -10,7 +10,7 @@ steps = [
     step('''
     CREATE TABLE neighborhood_tree(
          id SERIAL PRIMARY KEY,
-         title VARCHAR(255) NOT NULL,
+         title VARCHAR(255) UNIQUE,
          parent_id INTEGER REFERENCES neighborhood_tree(id) ON DELETE CASCADE     
          )
          ''')

@@ -1,4 +1,4 @@
-from CRUID import Track
+from CRUD import Track
 from Search import main as search
 import os
 import time
@@ -61,6 +61,7 @@ while(True):
             int_list.append((int(element),))
         print(Track.DeleteMany(int_list))
     elif(number_of_acion == 7):
+        from prettytable import PrettyTable
         id = (input("Введите идентификационный номер: "))
         title = input("Введите название песни: ")
         performers = input("Введите название иполнителя: ")
@@ -68,9 +69,8 @@ while(True):
         duration = (input("Введите длительность трека: ")) 
         number_of_results = input("Введите количества выдаваемых результатов: ")
         offset = input("Введите смещение: ")
-        ans = search.TrackSearch(track_id = id, title=title, performers=performers, album=album, duration=duration, number_of_results=number_of_results, offset=offset)
-        for i in ans:
-            print(i)
+        tracks = search.TrackSearch(track_id = id, title=title, performers=performers, album=album, duration=duration, number_of_results=number_of_results, offset=offset)
+        print(tracks)
 
     
     # time.sleep(3)

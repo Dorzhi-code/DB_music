@@ -31,6 +31,9 @@ def DeleteLeaf(id):
 # ? return int (количество удаленных)
 # ! как возвращать количество удаленных
 def DeleteSubtree(id):
+    # 1) в лоб посчитать до после
+    # 2) посчитать потомков
+    # 3) psycopg2 или postrgre возвращает
     cursor, conn = Connect.get_connection()
     cursor.execute('''
         DELETE FROM neighborhood_tree
@@ -93,6 +96,9 @@ def GetDirectParent(id):
 # ? return Array[id, title, parent_id]
 def GetAllDescendants(id):
     cursor, conn = Connect.get_connection()
+
+    # разобраться с RECURSIVE
+    # UNION ALL
     cursor.execute('''
         WITH RECURSIVE r AS (
             SELECT id, title, parent_id

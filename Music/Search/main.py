@@ -9,13 +9,16 @@ def TrackSearch(track_id = 0, title = "", performers ="", album="", duration= 0,
         cursor,conn = Connect.get_connection()
         query = "SELECT * FROM track WHERE TRUE"
         param = []
-        if(track_id):
+        if(track_id != 0):
             query += " AND track_id = %s"
             param.append(track_id)
         else:
             if(duration):
                 query += " AND duration = %s"
                 param.append(duration)
+            title = title.strip()
+            performers = performers.strip()
+            album = album.strip()  
             query += " AND LOWER(title) LIKE %s AND  LOWER(performers) LIKE %s AND LOWER(album) LIKE %s"
             param.append('%'+str.lower(title)+'%')
             param.append('%'+ str.lower(performers)+'%')

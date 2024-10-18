@@ -2,23 +2,19 @@
 # ? return id
 def Create(title, performers, album, duration ):
     try:
-        from CRUID import Connect
+        from CRUD import Connect
         cursor,conn = Connect.get_connection()
 
         title = title.strip()
         performers = performers.strip()
         album = album.strip()        
-        print(title)
-        print(performers)
-        print(album)
-        print(duration)
-
+    
         cursor.execute('''           
             INSERT INTO track (title, performers, album, duration)
             VALUES (%s, %s, %s, %s)
             RETURNING track_id;            
                     ''', (title, performers, album, duration))
-        print(8)
+        
         result = cursor.fetchall()
         conn.commit()
         cursor.close()
@@ -31,15 +27,13 @@ def Create(title, performers, album, duration ):
 # ? return Array[Aray[track_id, title, performers, album, duration]]
 def RetrieveAll():
     try:
-        from CRUID import Connect
+        from CRUD import Connect
         cursor,conn = Connect.get_connection()
         cursor.execute('''
             SELECT * 
             FROM track; 
                     ''')
         result = cursor.fetchall()
-        #for i in result:
-        #    print(i)
         cursor.close()
         conn.close()
         return result
@@ -49,7 +43,7 @@ def RetrieveAll():
 # ? return Array[track_id, title, performers, album, duration]
 def Retrieve(id):
     try:
-        from CRUID import Connect   
+        from CRUD import Connect   
         cursor,conn = Connect.get_connection()
         cursor.execute('''
             SELECT *
@@ -67,7 +61,7 @@ def Retrieve(id):
 # ? return track_id
 def Update(id, title, performers, album, duration):
     try: 
-        from CRUID import Connect
+        from CRUD import Connect
         cursor,conn = Connect.get_connection()
         
         title.strip()
@@ -91,7 +85,7 @@ def Update(id, title, performers, album, duration):
 # ? return number_of_deleted
 def Delete(id):
     try:
-        from CRUID import Connect
+        from CRUD import Connect
         cursor,conn = Connect.get_connection()
         cursor.execute('''
             DELETE FROM track
@@ -108,7 +102,7 @@ def Delete(id):
 # ? return number_of_deleted
 def DeleteMany(list_of_id):
     try:
-        from CRUID import Connect
+        from CRUD import Connect
         cursor,conn = Connect.get_connection()
         cursor.executemany('''
             DELETE FROM track
