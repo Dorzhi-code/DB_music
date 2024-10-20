@@ -67,10 +67,14 @@ while(True):
         performers = input("Введите название иполнителя: ")
         album = input("Введите название альбома: ")
         duration = (input("Введите длительность трека: ")) 
-        number_of_results = input("Введите количества выдаваемых результатов: ")
-        offset = input("Введите смещение: ")
+        number_of_results = (input("Введите количества выдаваемых результатов: "))
+        offset = (input("Введите смещение: "))
+        
         tracks = search.TrackSearch(track_id = id, title=title, performers=performers, album=album, duration=duration, number_of_results=number_of_results, offset=offset)
-        print(tracks)
+        table = PrettyTable(['ID', 'Title', 'Performers', 'Album', 'Duration'])
+        for track in tracks:
+            table.add_row([track[0], track[1], track[2], track[3], track[4]])
+        print(table)
 
     
     # time.sleep(3)

@@ -78,7 +78,7 @@ def Update(id, title, performers, album, duration):
         result = cursor.fetchall()
         cursor.close()
         conn.close()
-        return "Successfully updated with id = " + result
+        return ("Successfully updated with id = " + str(result))
     except:
         return "Failed to edit record in track table"
 # Удаление экземляра трека. На вход (int)
@@ -88,6 +88,10 @@ def Delete(id):
         from CRUD import Connect
         cursor,conn = Connect.get_connection()
         cursor.execute('''
+            DELETE FROM playlist_track
+            WHERE track_id = %s ;
+                    ''', (id,))    
+        cursor.execute('''
             DELETE FROM track
             WHERE track_id = %s ;
                     ''', (id,))    
@@ -95,7 +99,7 @@ def Delete(id):
         conn.commit()
         cursor.close()
         conn.close()
-        return "Successfully deleted with id = " + result
+        return ("Successfully deleted: " + str(result))
     except:
         return "Failed to delete record in track table"
 # Удаление экземляров трека. На вход (Array[int])
@@ -104,11 +108,17 @@ def DeleteMany(list_of_id):
     try:
         from CRUD import Connect
         cursor,conn = Connect.get_connection()
-        cursor.executemany('''
-            DELETE FROM track
-            WHERE track_id = %s ;
-                    ''', (list_of_id))    
-        result = cursor.rowcount
+        result = 0
+        for id in list_of_id:
+            cursor.execute('''
+                DELETE FROM playlist_track
+                WHERE track_id = %s ;
+                        ''', (id,))    
+            cursor.execute('''
+                DELETE FROM track
+                WHERE track_id = %s ;
+                        ''', (id,))    
+            result += cursor.rowcount                      
         conn.commit()
         cursor.close()
         conn.close()
