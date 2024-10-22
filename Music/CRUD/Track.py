@@ -78,7 +78,7 @@ def Update(id, title, performers, album, duration):
         result = cursor.fetchall()
         cursor.close()
         conn.close()
-        return ("Successfully updated with id = " + str(result))
+        return ("Successfully updated with id = " + str(result[0][0]))
     except:
         return "Failed to edit record in track table"
 # Удаление экземляра трека. На вход (int)
@@ -99,6 +99,8 @@ def Delete(id):
         conn.commit()
         cursor.close()
         conn.close()
+        if(result == 0):
+            return("Не правильно ввели идентификационный номер.")
         return ("Successfully deleted: " + str(result))
     except:
         return "Failed to delete record in track table"
@@ -122,7 +124,8 @@ def DeleteMany(list_of_id):
         conn.commit()
         cursor.close()
         conn.close()
-        print(result)
+        if(result == 0):
+            return("Не правильно ввели идентификационный номер.")
         return ("Successfully deleted: " + str(result))
     except:
         return "Failed to delete records in track table"

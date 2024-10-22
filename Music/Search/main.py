@@ -5,7 +5,7 @@ def TrackSearch(track_id = '', title = "", performers ="", album="", duration= '
         # Добавляем путь к директории проекта в sys.path
         #project_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), "C:\\Users\\Dorzhi\\source\\rep\\DB_music"))
         #sys.path.append(project_directory)  
-        from Search import Connect
+        from CRUD import Connect
         cursor,conn = Connect.get_connection()
         query = "SELECT * FROM track WHERE TRUE"
         param = []
