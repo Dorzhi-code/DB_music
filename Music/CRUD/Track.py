@@ -87,10 +87,10 @@ def Delete(id):
     try:
         from CRUD import Connect
         cursor,conn = Connect.get_connection()
-        cursor.execute('''
-            DELETE FROM playlist_track
-            WHERE track_id = %s ;
-                    ''', (id,))    
+        # cursor.execute('''
+        #     DELETE FROM playlist_track
+        #     WHERE track_id = %s ;
+        #             ''', (id,))    
         cursor.execute('''
             DELETE FROM track
             WHERE track_id = %s ;
