@@ -32,10 +32,10 @@ while(True):
             title = input("Введите название песни: ")
             performers = input("Введите название иполнителя: ")
             album = input("Введите название альбома: ")
-            duration = int(input("Введите длительность трека: "))
+            duration = input("Введите длительность трека: ")
             print(TrackController.Create(title, performers, album, duration))
         except:
-            print("Не правильно ввели длительность.")
+            print("Не получилось записать.")
 
     elif(number_of_acion == 2): # Получить все треки
         tracks = TrackController.RetrieveAll()
@@ -44,16 +44,16 @@ while(True):
 
     elif(number_of_acion == 3): # Получить определенный трек по ключу
         try:                
-            id = int(input("Введите идентификационный номер: "))
+            id = int(input("Введите идентификатор: "))
             track = TrackController.Retrieve(id)
             
             print(track)
         except:
-            print("Не правильно ввели идентификационный номер.")
+            print("Не правильно ввели идентификатор.")
 
     elif(number_of_acion == 4): # Редактирование трека
         try:
-            id = int(input("Введите идентификационный номер: "))
+            id = int(input("Введите идентификатор: "))
             result = TrackController.IsThereElement(id)
             
             if(result != []):  
@@ -61,7 +61,12 @@ while(True):
                 old_performers = result[0][2]
                 old_album = result[0][3]
                 old_duration = result[0][4]
-                                
+                
+                print("Текущие данные: ")
+                print(TrackController.Retrieve(id))
+
+                print("Если хотите оставить прежние данные, то пропустите строку(нажать enter).")
+
                 title = input("Введите название песни: ")
                 title = title.strip()
                 if(title == ""):
@@ -87,20 +92,20 @@ while(True):
 
         except:
             if(id == ""):
-                print("Не правильно ввели идентификационный номер.")
+                print("Не правильно ввели идентификатор.")
             
 
     elif(number_of_acion == 5): # Удалить трек
         try:
-            id = int(input("Введите идентификационный номер: "))
+            id = int(input("Введите идентификатор: "))
 
             print(TrackController.Delete(id))
         except:
-            print("Не правильно ввели идентификационный номер.")
+            print("Не правильно ввели идентификатор.")
 
     elif(number_of_acion == 6): # Удалить несколько треков
         int_list = []
-        for element in input("Введите идентификационный номер: ").split():
+        for element in input("Введите идентификатор: ").split():
             try:
                 int_list.append((int(element),))
             except:
@@ -109,24 +114,11 @@ while(True):
         print(TrackController.DeleteMany(int_list))
 
     elif(number_of_acion == 7): # Поиск трека
-        try:                
-            from prettytable import PrettyTable
-            id = (input("Введите идентификационный номер: "))
-            title = input("Введите название песни: ")
-            performers = input("Введите название иполнителя: ")
-            album = input("Введите название альбома: ")
-            duration = (input("Введите длительность трека: ")) 
-            number_of_results = (input("Введите количества выдаваемых результатов: "))
-            offset = (input("Введите смещение: "))
-            
-            tracks = search.TrackSearch(track_id = id, title=title, performers=performers, album=album, duration=duration, number_of_results=number_of_results, offset=offset)
-            table = PrettyTable(['ID', 'Title', 'Performers', 'Album', 'Duration'])
-            for track in tracks:
-                table.add_row([track[0], track[1], track[2], track[3], track[4]])
-
-            print(table)
+        try:                            
+            tracks = search.TrackSearch()
+            print(tracks)
         except:
-            print("Не правильно ввели данные")
+            print("Не получилось найти")
 
     
     # time.sleep(3)

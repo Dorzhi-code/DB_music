@@ -7,7 +7,8 @@ def Create(title, performers, album, duration ):
 
         title = title.strip()
         performers = performers.strip()
-        album = album.strip()        
+        album = album.strip() 
+        duration = duration.strip()       
 
         if(title == ""):
             return("Название не может быть пустой строкой")        
@@ -18,8 +19,13 @@ def Create(title, performers, album, duration ):
         if(album == ""):
             return("Альбом не может быть пустой строкой")
         
+        if(not duration.lstrip("-").isdigit()):
+            return("Продолжительность это число")
+        else:
+            duration = int(duration)
         if(duration <= 0):
-            return("Неправильно ввели длительнось")
+            return("Длительнось может быть только положительной")
+        
         cursor.execute('''           
             INSERT INTO track (title, performers, album, duration)
             VALUES (%s, %s, %s, %s)
