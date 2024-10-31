@@ -22,7 +22,7 @@ def Create(title, performers, album, duration, conn):
             return("Длительнось это положительное целое число меньшее 32768 секунд ")
         else:
             duration = int(duration)
-            if(duration <= 0):
+            if(duration <= 0 or duration >= 32768):
                 return("Длительнось это положительное целое число меньшее 32768 секунд ")
 
 
@@ -134,7 +134,7 @@ def Update(conn):
                 else:
                     duration = int(duration)
             
-                if(duration <= 0):
+                if(duration <= 0 or duration >= 32768):
                     return ("Длительнось это положительное целое число меньшее 32768 секунд ")
             cursor.execute('''
                 UPDATE track 
