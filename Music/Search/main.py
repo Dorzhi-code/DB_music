@@ -47,7 +47,7 @@ def TrackSearch(conn):
             duration = duration.strip()
             if(duration != ""):
                 if(not duration.isdigit()):
-                    return "Продолжительность это положительное число"
+                    return "Длительнось это положительное целое число меньшее 32768 секунд "
                 else:
                     duration = int(duration)
                     query += " AND duration = %s"

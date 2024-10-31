@@ -18,16 +18,14 @@ def Create(title, performers, album, duration, conn):
         if(album == ""):
             return("Альбом не может быть пустой строкой")
         
-        if(not duration.lstrip("-").isdigit()):
-            return("Продолжительность это число")
+        if(not duration.isdigit()):
+            return("Длительнось это положительное целое число меньшее 32768 секунд ")
         else:
             duration = int(duration)
+            if(duration <= 0):
+                return("Длительнось это положительное целое число меньшее 32768 секунд ")
 
-        if(duration <= 0):
-            return("Длительнось может быть только положительной")
-        
-        if(duration > 32767):
-            return("Длительность должна быть меньше 32768 секунд")
+
         
         
         cursor.execute('''           
@@ -96,7 +94,7 @@ def Update(conn):
         id = input("Введите идентификатор: ")
         id =id.strip()
         if(not id.isdigit()):
-            return("Идентификатор это положительное число")
+            return("Идентификатор это положительное целое число")
 
         result = IsThereElement(id, conn)
             
@@ -132,12 +130,12 @@ def Update(conn):
                 duration = old_duration
             else:                    
                 if(not duration.isdigit()):
-                    return ("Длительность это положительное число")
+                    return ("Длительнось это положительное целое число меньшее 32768 секунд ")
                 else:
                     duration = int(duration)
             
                 if(duration <= 0):
-                    return ("Длительность это положительное число")
+                    return ("Длительнось это положительное целое число меньшее 32768 секунд ")
             cursor.execute('''
                 UPDATE track 
                 SET (title, performers, album, duration) = (%s, %s, %s, %s)
