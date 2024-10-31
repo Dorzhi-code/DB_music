@@ -1,13 +1,12 @@
-def TrackSearch(track_id = '', title = "", performers ="", album="", duration= '', number_of_results = 5, offset = 0):
+def TrackSearch(conn):
     try:
         import os
         import sys
         # Добавляем путь к директории проекта в sys.path
         #project_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), "C:\\Users\\Dorzhi\\source\\rep\\DB_music"))
         #sys.path.append(project_directory)  
-        from CRUD import Connect
+        cursor = conn.cursor()
 
-        cursor,conn = Connect.get_connection()
         query = "SELECT * FROM track WHERE TRUE"
         param = []
 
@@ -86,7 +85,6 @@ def TrackSearch(track_id = '', title = "", performers ="", album="", duration= '
 
         tracks = cursor.fetchall()
         cursor.close()
-        conn.close()
 
         if(tracks == []):
             return "Нет такого трека(ов)"

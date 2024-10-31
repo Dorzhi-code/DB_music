@@ -8,5 +8,4 @@ def get_connection():
         host="127.0.0.1",
         port="5432"
     )
-    cursor = conn.cursor()
-    return cursor, conn
+    return conn

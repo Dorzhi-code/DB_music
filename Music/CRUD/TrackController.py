@@ -1,9 +1,8 @@
 # Создание экземляра трека. На вход: (string, string, string, int)
 # ? return id
-def Create(title, performers, album, duration ):
+def Create(title, performers, album, duration, conn):
     try:
-        from CRUD import Connect
-        cursor,conn = Connect.get_connection()
+        cursor = conn.cursor()
 
         title = title.strip()
         performers = performers.strip()
@@ -23,8 +22,13 @@ def Create(title, performers, album, duration ):
             return("Продолжительность это число")
         else:
             duration = int(duration)
+
         if(duration <= 0):
             return("Длительнось может быть только положительной")
+        
+        if(duration > 32767):
+            return("Длительность должна быть меньше 32768 секунд")
+        
         
         cursor.execute('''           
             INSERT INTO track (title, performers, album, duration)
@@ -35,24 +39,23 @@ def Create(title, performers, album, duration ):
         result = cursor.fetchall()
         conn.commit()
         cursor.close()
-        conn.close()
+
         return ("Успешно добавили с идентификатором: " + str(result[0][0]))
     except:
         return "Не получилось добавить."
 
 # Получение всех экземляров трека. 
 # ? return Array[Aray[track_id, title, performers, album, duration]]
-def RetrieveAll():
+def RetrieveAll(conn):
     try:
-        from CRUD import Connect
-        cursor,conn = Connect.get_connection()
+        cursor = conn.cursor()
+
         cursor.execute('''
             SELECT * 
             FROM track; 
                     ''')
         tracks = cursor.fetchall()
         cursor.close()
-        conn.close()
 
         from prettytable import PrettyTable
         table = PrettyTable(['ID', 'Title', 'Performers', 'Album', 'Duration'])
@@ -64,10 +67,10 @@ def RetrieveAll():
         return("Не получилось получить.")
 # Получение экземляра трека. На вход (int)
 # ? return Array[track_id, title, performers, album, duration]
-def Retrieve(id):
+def Retrieve(id, conn):
     try:
-        from CRUD import Connect   
-        cursor,conn = Connect.get_connection()
+        cursor = conn.cursor()
+
         cursor.execute('''
             SELECT *
             FROM track
@@ -75,7 +78,6 @@ def Retrieve(id):
                     ''', (id,))    
         track = cursor.fetchall()
         cursor.close()
-        conn.close()
 
         from prettytable import PrettyTable
         table = PrettyTable(['ID', 'Title', 'Performers', 'Album', 'Duration'])
@@ -86,44 +88,90 @@ def Retrieve(id):
 
 # Редактирование экземляра трека. На вход (int, string, string, string, int)
 # ? return track_id
-def Update(id, title, performers, album, duration):
-    try: 
-        from CRUD import Connect
-        cursor,conn = Connect.get_connection()
+#check 
+def Update(conn):
+    # try: 
+        cursor = conn.cursor()
 
-        title.strip()
-        performers.strip()
-        album.strip()
+        id = input("Введите идентификатор: ")
+        id =id.strip()
+        if(not id.isdigit()):
+            return("Идентификатор это положительное число")
 
-        cursor.execute('''
-                    UPDATE track 
-                    SET (title, performers, album, duration) = (%s, %s, %s, %s)
-                    WHERE track_id = (%s)
-                    RETURNING track_id;
-                            ''', (title, performers, album, duration, id))  
+        result = IsThereElement(id, conn)
+            
+        if(result != []):  
+            old_title = result[0][1]
+            old_performers = result[0][2]
+            old_album = result[0][3]
+            old_duration = result[0][4]
+            
+            print("Текущие данные: ")
+            print(Retrieve(id, conn))
 
-        conn.commit()
-        result = cursor.fetchall()
-        cursor.close()
-        conn.close()
-                    
-        return ("Успешно изменилoсь с идентификатором: " + str(result[0][0]))
-    except:
-        return "Не получилось изменить."
+            print("Если хотите оставить прежние данные, то пропустите строку(нажать enter).")
+
+            title = input("Введите название песни: ")
+            title = title.strip()
+            if(title == ""):
+                title = old_title
+
+            performers = input("Введите название иполнителя: ")
+            performers = performers.strip()
+            if(performers == ""):
+                performers = old_performers
+    
+            album = input("Введите название альбома: ")
+            album = album.strip()     
+            if(album == ""):
+                album = old_album
+
+            duration = input("Введите длительность трека: ")
+            duration = duration.strip()
+            if(duration == ""):
+                duration = old_duration
+            else:                    
+                if(not duration.isdigit()):
+                    return ("Длительность это положительное число")
+                else:
+                    duration = int(duration)
+            
+                if(duration <= 0):
+                    return ("Длительность это положительное число")
+            cursor.execute('''
+                UPDATE track 
+                SET (title, performers, album, duration) = (%s, %s, %s, %s)
+                WHERE track_id = (%s)
+                RETURNING track_id;
+                        ''', (title, performers, album, duration, id))  
+
+            conn.commit()
+            result = cursor.fetchall()
+            cursor.close()
+
+            return ("Успешно изменилoсь с идентификатором: " + str(result[0][0]))
+        
+        else:
+            return("Нет такого трека")    
+                        
+    # except:
+    #     return "Не получилось изменить."
+    
 # Удаление экземляра трека. На вход (int)
 # ? return number_of_deleted
-def Delete(id):
+def Delete(id, conn):
     try:
-        from CRUD import Connect
-        cursor,conn = Connect.get_connection() 
+        cursor = conn.cursor()
+
         cursor.execute('''
             DELETE FROM track
             WHERE track_id = %s ;
-                    ''', (id,))    
+                    ''', (id,)) 
+           
         result = cursor.rowcount
         conn.commit()
         cursor.close()
-        conn.close()
+
         if(result == 0):
             return("Нет таких записей")
         return ("Успешно удалено: " + str(result))
@@ -131,38 +179,40 @@ def Delete(id):
         return "Не получилось удалить."
 # Удаление экземляров трека. На вход (Array[int])
 # ? return number_of_deleted
-def DeleteMany(list_of_id):
+def DeleteMany(list_of_id, conn):
     try:
-        from CRUD import Connect
-        cursor,conn = Connect.get_connection()
+        cursor = conn.cursor()
+
         result = 0
+
         for id in list_of_id:   
             cursor.execute('''
                 DELETE FROM track
                 WHERE track_id = %s ;
                         ''', (id,))    
-            result += cursor.rowcount                      
+            result += cursor.rowcount  
+
         conn.commit()
         cursor.close()
-        conn.close()
+
         if(result == 0):
             return("Нет таких записей")
         return ("Успешно удалено: " + str(result))
     except:
         return "Не получилось удалить."
 
-def IsThereElement(id):
+def IsThereElement(id, conn):
     try:
-        from CRUD import Connect   
-        cursor,conn = Connect.get_connection()
+        cursor = conn.cursor()
+
         cursor.execute('''
             SELECT *
             FROM track
             WHERE track_id = %s;
                     ''', (id,))    
+        
         track = cursor.fetchall()
         cursor.close()
-        conn.close()
         
         return track 
     except:
