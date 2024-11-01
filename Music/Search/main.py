@@ -10,75 +10,64 @@ def TrackSearch(conn):
         query = "SELECT * FROM track WHERE TRUE"
         param = []
 
-        track_id = (input("Введите идентификационный номер: "))
-        track_id = track_id.strip()
+    
+        title = input("Введите название песни: ")
+        title = title.strip()
+        if(title != ""):
+            query += " AND LOWER(title) LIKE %s"
+            param.append('%'+str.lower(title)+'%')
 
-        if(track_id != ""):
-            if(not track_id.isdigit()):
-                return "Идентификатор это положительное число"
+
+        performers = input("Введите название иполнителя: ")
+        performers = performers.strip()
+        if(performers != ""):
+            query += " AND  LOWER(performers) LIKE %s"
+            param.append('%'+ str.lower(performers)+'%')
+
+
+        album = input("Введите название альбома: ")
+        album = album.strip()  
+        if(album != ""):
+            query += " AND LOWER(album) LIKE %s"
+            param.append('%'+str.lower(album)+'%')
+
+
+        duration = (input("Введите длительность трека: ")) 
+        duration = duration.strip()
+        if(duration != ""):
+            if(not duration.isdigit()):
+                return "Длительнось это положительное целое число меньшее 32768 секунд "
             else:
-                track_id = int(track_id)
-                query += " AND track_id = %s"
-                param.append(track_id)
+                duration = int(duration)
+                query += " AND duration = %s"
+                param.append(duration)
+        
 
+        query += " LIMIT %s "
+        number_of_results = input("Введите количества выдаваемых результатов: ")
+        number_of_results = number_of_results.strip()
+        if(number_of_results != ""):
+            if(not number_of_results.isdigit()):
+                return "Количества выдаваемых результатов это положительное число"
+            else:
+                number_of_results = int(number_of_results)
+                param.append(number_of_results) 
         else:
-            title = input("Введите название песни: ")
-            title = title.strip()
-            if(title != ""):
-                query += " AND LOWER(title) LIKE %s"
-                param.append('%'+str.lower(title)+'%')
+            param.append(5)
 
 
-            performers = input("Введите название иполнителя: ")
-            performers = performers.strip()
-            if(performers != ""):
-                query += " AND  LOWER(performers) LIKE %s"
-                param.append('%'+ str.lower(performers)+'%')
-
-
-            album = input("Введите название альбома: ")
-            album = album.strip()  
-            if(album != ""):
-                query += " AND LOWER(album) LIKE %s"
-                param.append('%'+str.lower(album)+'%')
-
-
-            duration = (input("Введите длительность трека: ")) 
-            duration = duration.strip()
-            if(duration != ""):
-                if(not duration.isdigit()):
-                    return "Длительнось это положительное целое число меньшее 32768 секунд "
-                else:
-                    duration = int(duration)
-                    query += " AND duration = %s"
-                    param.append(duration)
-            
-
-            query += " LIMIT %s "
-            number_of_results = input("Введите количества выдаваемых результатов: ")
-            number_of_results = number_of_results.strip()
-            if(number_of_results != ""):
-                if(not number_of_results.isdigit()):
-                    return "Количества выдаваемых результатов это положительное число"
-                else:
-                    number_of_results = int(number_of_results)
-                    param.append(number_of_results) 
+        query += "OFFSET %s"
+        offset = input("Введите смещение: ")
+        offset = (input("Введите количества выдаваемых результатов: "))
+        offset = offset.strip()
+        if(offset != ""):
+            if(not offset.isdigit()):
+                return "Количества выдаваемых результатов это положительное число"
             else:
-                param.append(5)
-
-
-            query += "OFFSET %s"
-            offset = input("Введите смещение: ")
-            offset = (input("Введите количества выдаваемых результатов: "))
-            offset = offset.strip()
-            if(offset != ""):
-                if(not offset.isdigit()):
-                    return "Количества выдаваемых результатов это положительное число"
-                else:
-                    offset = int(offset)
-                    param.append(offset) 
-            else:
-                param.append(0)
+                offset = int(offset)
+                param.append(offset) 
+        else:
+            param.append(0)
 
 
         cursor.execute(query, param)
