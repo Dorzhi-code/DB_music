@@ -2,6 +2,10 @@ from CRUD import TrackController
 from Search import main as search
 import os
 import time
+
+#  Табличный вывод
+
+
 # Получение номера действия
 def get_action_number():
     print("""
@@ -34,56 +38,36 @@ while(True):
 
     elif(number_of_acion == 1): # Записать трек
         try:
-            title = input("Введите название песни: ")
-            performers = input("Введите название иполнителя: ")
-            album = input("Введите название альбома: ")
-            duration = input("Введите длительность трека: ")
-            print(TrackController.Create(title, performers, album, duration, conn))
+            print(TrackController.Create(conn))
         except:
             print("Не получилось записать.")
 
     elif(number_of_acion == 2): # Получить все треки
         tracks = TrackController.RetrieveAll(conn)
  
-        print(tracks)
+        TrackController.PrintPrettyTable(tracks)
 
-    elif(number_of_acion == 3): # Получить определенный трек по ключу
-        try:                
-            id = int(input("Введите идентификатор: "))
-            track = TrackController.Retrieve(id, conn)
-            
-            print(track)
-        except:
-            print("Идентификатор это положительное число.")
+    elif(number_of_acion == 3): # Получить определенный трек по ключу                   
+        track = TrackController.Retrieve(conn = conn)
+        
+        TrackController.PrintPrettyTable(track)
+
 
     elif(number_of_acion == 4): # Редактирование трека
         print(TrackController.Update(conn))
             
-
     elif(number_of_acion == 5): # Удалить трек
-        try:
-            id = int(input("Введите идентификатор: "))
-
-            print(TrackController.Delete(id, conn))
-        except:
-            print("Не правильно ввели идентификатор.")
+        print(TrackController.Delete(conn))        
 
     elif(number_of_acion == 6): # Удалить несколько треков
-        int_list = []
-        for element in input("Введите идентификатор: ").split():
-            try:
-                int_list.append((int(element),))
-            except:
-                print(element + " не число. ")
 
-        print(TrackController.DeleteMany(int_list, conn))
+        print(TrackController.DeleteMany(conn))
 
     elif(number_of_acion == 7): # Поиск трека
-        try:                            
-            tracks = search.TrackSearch(conn)
-            print(tracks)
-        except:
-            print("Не получилось найти")
+                    
+        tracks = search.TrackSearch(conn)
+        print(tracks)
+        
 
     
     # time.sleep(3)

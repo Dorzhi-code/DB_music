@@ -10,7 +10,7 @@ def TrackSearch(conn):
         query = "SELECT * FROM track WHERE TRUE"
         param = []
 
-    
+        
         title = input("Введите название песни: ")
         title = title.strip()
         if(title != ""):
