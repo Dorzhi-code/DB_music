@@ -1,5 +1,5 @@
 def TrackSearch(conn):
-    try:
+    # try:
         import os
         import sys
         # Добавляем путь к директории проекта в sys.path
@@ -12,35 +12,47 @@ def TrackSearch(conn):
 
         
         title = input("Введите название песни: ")
-        title = title.strip()
         if(title != ""):
-            query += " AND LOWER(title) LIKE %s"
+            while '  ' in title:
+                title = title.replace('  ', ' ')        
+            query += " AND LOWER(' ' || title || ' ') LIKE %s"
             param.append('%'+str.lower(title)+'%')
 
 
         performers = input("Введите название иполнителя: ")
-        performers = performers.strip()
         if(performers != ""):
-            query += " AND  LOWER(performers) LIKE %s"
+            while '  ' in performers:
+                performers = performers.replace('  ', ' ')
+            query += " AND  LOWER(' ' || performers || ' ' ) LIKE %s"
             param.append('%'+ str.lower(performers)+'%')
 
 
         album = input("Введите название альбома: ")
-        album = album.strip()  
         if(album != ""):
-            query += " AND LOWER(album) LIKE %s"
+            while '  ' in album:
+                album = album.replace('  ', ' ')
+            query += " AND LOWER(' ' || album || ' ') LIKE %s"
             param.append('%'+str.lower(album)+'%')
 
 
-        duration = (input("Введите длительность трека: ")) 
+        duration = (input("Введите длительность трека в формате {оператор(=, >, <) число}: ")) 
         duration = duration.strip()
         if(duration != ""):
+            operation = duration[0]
+            duration = duration[1:len(duration)]
             if(not duration.isdigit()):
                 return "Длительнось это положительное целое число меньшее 32768 секунд "
             else:
                 duration = int(duration)
-                query += " AND duration = %s"
-                param.append(duration)
+
+            if(operation == '='):                
+                query += " AND duration = %s"            
+            elif(operation == '>'):                
+                query += " AND duration > %s"
+            elif(operation == '<'):            
+                query += " AND duration < %s"
+
+            param.append(duration)
         
 
         query += " LIMIT %s "
@@ -48,7 +60,7 @@ def TrackSearch(conn):
         number_of_results = number_of_results.strip()
         if(number_of_results != ""):
             if(not number_of_results.isdigit()):
-                return "Количества выдаваемых результатов это положительное число"
+                return "Количества выдаваемых результатов это положительное целое число"
             else:
                 number_of_results = int(number_of_results)
                 param.append(number_of_results) 
@@ -57,12 +69,11 @@ def TrackSearch(conn):
 
 
         query += "OFFSET %s"
-        offset = input("Введите смещение: ")
-        offset = (input("Введите количества выдаваемых результатов: "))
+        offset = input("Введите смещение: ")        
         offset = offset.strip()
         if(offset != ""):
             if(not offset.isdigit()):
-                return "Количества выдаваемых результатов это положительное число"
+                return "Смещение это положительное целое число"
             else:
                 offset = int(offset)
                 param.append(offset) 
@@ -76,13 +87,8 @@ def TrackSearch(conn):
         cursor.close()
 
         if(tracks == []):
-            return "Нет такого трека(ов)"
+            return "Нет такого трека"
         
-        from prettytable import PrettyTable
-        table = PrettyTable(['ID', 'Title', 'Performers', 'Album', 'Duration'])
-        for track in tracks:
-            table.add_row([track[0], track[1], track[2], track[3], track[4]])
-
-        return table
-    except:
-        return "Не получилось найти трек"
+        return tracks
+    # except:
+    #     return "Не получилось найти трек"

@@ -1,6 +1,10 @@
 import psycopg2
 
 def PrintPrettyTable(tracks=[]):
+    print()
+    if(not isinstance(tracks, list)):
+        print(tracks)
+        return
     from prettytable import PrettyTable
     table = PrettyTable(['ID', 'Title', 'Performers', 'Album', 'Duration'])    
     for track in tracks:
@@ -70,13 +74,13 @@ def RetrieveAll(conn):
     #     return("Не получилось получить.")
 # Получение экземляра трека. На вход (int)
 # ? return Array[track_id, title, performers, album, duration]
-def Retrieve(id = 0, conn = psycopg2.connect):
+def Retrieve(conn = psycopg2.connect):
     try:
-        if(id == 0):                
-            id = input("Введите идентификатор: ")
-            id = id.strip()
-            if(not id.isdigit()):
-                return("Идентификатор это положительное целое число")
+                    
+        id = input("Введите идентификатор: ")
+        id = id.strip()
+        if(not id.isdigit()):
+            return("Идентификатор это положительное целое число")
 
         cursor = conn.cursor()
 
@@ -87,7 +91,8 @@ def Retrieve(id = 0, conn = psycopg2.connect):
                     ''', (id,))    
         track = cursor.fetchall()
         cursor.close()
-
+        if(track == []):
+            return "Нет такого трека."
         return track
     except:
         return "Нет такого трека."
@@ -194,7 +199,7 @@ def Delete(conn):
 # Удаление экземляров трека. На вход (Array[int])
 # ? return number_of_deleted
 def DeleteMany(conn):
-    try:
+    # try:
         array_of_id = []
         for element in input("Введите идентификатор: ").split():
             try:
@@ -202,23 +207,21 @@ def DeleteMany(conn):
             except:
                 print(element + " не число. ")    
         
-        tuple_of_id = tuple(array_of_id)
         cursor = conn.cursor()
-        
+        # ANY, так как список может быть пустой 
         cursor.execute('''
             DELETE FROM track
-            WHERE track_id IN %s
-                       ''', (tuple_of_id,))
-        
+            WHERE track_id = ANY(%s)
+                       ''', (array_of_id,))
+                
         result = cursor.rowcount
         
         conn.commit()
         cursor.close()
-
         if(result == 0):
             return("Нет таких записей")
         return ("Успешно удалено: " + str(result))
-    except:
-        return "Не получилось удалить."
+    # except:
+    #     return "Не получилось удалить."
 
 
