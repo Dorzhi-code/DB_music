@@ -1,40 +1,47 @@
 def TrackSearch(conn):
-    try:        
+    # try:        
         cursor = conn.cursor()
 
         query = "SELECT * FROM track WHERE TRUE"
         param = []
 
         
-        title = input("Введите название песни: ")
+        title = input("Введите название песни в формате [строка  [строка  [...]]]: ")
         if(title != ""):
-            while '  ' in title:
-                title = title.replace('  ', ' ')        
-            query += " AND LOWER(' ' || title || ' ') LIKE %s"
-            param.append('%'+str.lower(title)+'%')
+            list_title = title.split('  ')                      
+            query += " AND LOWER(' ' || title || ' ') LIKE ALL(%s)"
+            formatted_title = []
+            for item in list_title:
+                formatted_title.append('%' + item + '%')
+            param.append(formatted_title)
 
 
-        performers = input("Введите название иполнителя: ")
+        performers = input("Введите название иполнителя в формате [строка  [строка  [...]]]: ")
         if(performers != ""):
-            while '  ' in performers:
-                performers = performers.replace('  ', ' ')
-            query += " AND  LOWER(' ' || performers || ' ' ) LIKE %s"
-            param.append('%'+ str.lower(performers)+'%')
+            list_performers = performers.split('  ')
+            query += " AND  LOWER(' ' || performers || ' ' ) LIKE ALL(%s)"
+            formatted_performers = []
+            for item in list_performers:
+                formatted_performers.append('%' + item + '%')
+            param.append(formatted_performers)
 
 
-        album = input("Введите название альбома: ")
+        album = input("Введите название альбома в формате [строка  [строка  [...]]]: ")
         if(album != ""):
-            while '  ' in album:
-                album = album.replace('  ', ' ')
-            query += " AND LOWER(' ' || album || ' ') LIKE %s"
-            param.append('%'+str.lower(album)+'%')
+            list_album = album.split('  ')
+            query += " AND LOWER(' ' || album || ' ') LIKE ALL(%s)"
+            formatted_album = []
+            for item in list_album:
+                formatted_album.append('%' + item + '%')
+            param.append(formatted_album)
 
 
-        duration = (input("Введите длительность трека в формате {оператор(=, >, <) число}: ")) 
+        duration = (input("Введите длительность трека в формате [{>|<|=} число }]: ")) 
         duration = duration.strip()
         if(duration != ""):
             operation = duration[0]
             duration = duration[1:len(duration)]
+            duration = duration.strip()
             if(not duration.isdigit()):
                 return "Длительнось это положительное целое число меньшее 32768 секунд "
             else:
@@ -56,7 +63,7 @@ def TrackSearch(conn):
         
 
         query += " LIMIT %s "
-        number_of_results = input("Введите количества выдаваемых результатов: ")
+        number_of_results = input("Введите количества выдаваемых результатов в формате [число]: ")
         number_of_results = number_of_results.strip()
         if(number_of_results != ""):
             if(not number_of_results.isdigit()):
@@ -69,7 +76,7 @@ def TrackSearch(conn):
 
 
         query += "OFFSET %s"
-        offset = input("Введите смещение: ")        
+        offset = input("Введите смещение в формате [число]: ")        
         offset = offset.strip()
         if(offset != ""):
             if(not offset.isdigit()):
@@ -90,5 +97,5 @@ def TrackSearch(conn):
             return "Нет такого трека"
         
         return tracks
-    except:
-        return "Не получилось найти трек"
+    # except:
+    #     return "Не получилось найти трек"
