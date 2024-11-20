@@ -1,10 +1,5 @@
 def TrackSearch(conn):
-    # try:
-        import os
-        import sys
-        # Добавляем путь к директории проекта в sys.path
-        #project_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), "C:\\Users\\Dorzhi\\source\\rep\\DB_music"))
-        #sys.path.append(project_directory)  
+    try:        
         cursor = conn.cursor()
 
         query = "SELECT * FROM track WHERE TRUE"
@@ -46,12 +41,17 @@ def TrackSearch(conn):
                 duration = int(duration)
 
             if(operation == '='):                
-                query += " AND duration = %s"            
+                query += " AND duration = %s"         
+
             elif(operation == '>'):                
                 query += " AND duration > %s"
+
             elif(operation == '<'):            
                 query += " AND duration < %s"
 
+            else:
+                return "Не известная операция"
+            
             param.append(duration)
         
 
@@ -90,5 +90,5 @@ def TrackSearch(conn):
             return "Нет такого трека"
         
         return tracks
-    # except:
-    #     return "Не получилось найти трек"
+    except:
+        return "Не получилось найти трек"

@@ -74,13 +74,13 @@ def RetrieveAll(conn):
     #     return("Не получилось получить.")
 # Получение экземляра трека. На вход (int)
 # ? return Array[track_id, title, performers, album, duration]
-def Retrieve(conn = psycopg2.connect):
+def Retrieve(id = "", conn = psycopg2.connect):
     try:
-                    
-        id = input("Введите идентификатор: ")
-        id = id.strip()
-        if(not id.isdigit()):
-            return("Идентификатор это положительное целое число")
+        if(id == ""):
+            id = input("Введите идентификатор: ")
+            id = id.strip()
+            if(not id.isdigit()):
+                return("Идентификатор это положительное целое число")
 
         cursor = conn.cursor()
 
@@ -104,7 +104,7 @@ def Update(conn):
     try: 
 
         id = input("Введите идентификатор: ")
-        id =id.strip()
+        id = id.strip()
         if(not id.isdigit()):
             return("Идентификатор это положительное целое число")
 

@@ -7,6 +7,7 @@ from yoyo import step
 __depends__ = {'20241006_01_iJqeh-reate-neighborhood-tree'}
 
 steps = [
+    step('TRUNCATE neighborhood_tree'),   
     step('''
     INSERT INTO neighborhood_tree (id, title, parent_id)
     VALUES
@@ -45,7 +46,7 @@ steps = [
          (33, 'Машинка для стрижки HTC AT-202 белый/золотистый', 15),
          (34, 'Электрическая варочная поверхность DEXP 4M2CTYL/B', 16),
          (35, 'Индукционная варочная поверхность HOMSair HI32ABK', 16),
-         (36, 'Индукционная варочная поверхность HOMSair HI32ABK', 17),
+         (36, 'Индукционная варочная поверхность HOMSair IH32KAB', 17),
          (37, 'Индукционная варочная поверхность DEXP EH-I2SMA/B', 17),
          (38, 'Электрический духовой шкаф DEXP 1M70GNB черный', 18),
          (39, 'Электрический духовой шкаф Gefest ДА 602 К2 черный', 18),
@@ -60,5 +61,8 @@ steps = [
          (48, 'Холодильная витрина Бирюса 102 белый', 23),
          (49, 'Холодильная витрина DEXP GS2-5090AMG черный', 23)
 
-         ''')
+         '''),
+    step('''
+        ALTER SEQUENCE neighborhood_tree_id_seq RESTART WITH 50;
+         '''),
 ]

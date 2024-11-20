@@ -48,7 +48,7 @@ while(True):
         TrackController.PrintPrettyTable(tracks)
 
     elif(number_of_acion == 3): # Получить определенный трек по ключу                   
-        track = TrackController.Retrieve(conn)
+        track = TrackController.Retrieve(conn=conn)
         
         TrackController.PrintPrettyTable(track)
 
@@ -65,6 +65,6 @@ while(True):
 
     elif(number_of_acion == 7): # Поиск трека
                     
-        tracks = search.TrackSearch(conn)
+        tracks = search.TrackSearch(conn)        
         TrackController.PrintPrettyTable(tracks)
 
