@@ -63,11 +63,11 @@ def TrackSearch(conn):
         
 
         query += " LIMIT %s "
-        number_of_results = input("Введите количества выдаваемых результатов в формате [число]: ")
+        number_of_results = input("Введите количество выдаваемых результатов в формате [число]: ")
         number_of_results = number_of_results.strip()
         if(number_of_results != ""):
             if(not number_of_results.isdigit()):
-                return "Количества выдаваемых результатов это положительное целое число"
+                return "Количество выдаваемых результатов это положительное целое число"
             else:
                 number_of_results = int(number_of_results)
                 param.append(number_of_results) 
