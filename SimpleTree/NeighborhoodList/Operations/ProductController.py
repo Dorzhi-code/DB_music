@@ -134,7 +134,10 @@ def DeleteLeaf(conn):
             return "Идентификатор  должен быть положительным целым числом"
                      
         
-        if(isinstance(GetAllDescendants(id = id, conn=conn), list)):
+        if(not isinstance(GetNode(id=id, conn=conn), list)):
+            return("Нет листа с таким идентификатором")
+
+        if(not isinstance(GetAllDescendants(id = id, conn=conn), list)):
             return "Узел с идентификатором: " + str(id) + " не является листом"
         
         cursor = conn.cursor()        
@@ -168,7 +171,7 @@ def DeleteSubtree(conn):
             return "Идентификатор  должен быть положительным целым числом"
 
         if(not isinstance(GetNode(id=id, conn=conn), list)):
-            return("Нет листа с таким идентификатором")
+            return("Нет узла с таким идентификатором")
 
         result = len(GetAllDescendants(id, conn)) + 1
         cursor = conn.cursor()
@@ -378,7 +381,7 @@ def GetAllParents(conn):
         cursor.close()
          
         if(result == []):  
-            if(isinstance(GetNode(id=id, conn=conn),list)):          
+            if(not isinstance(GetNode(id=id, conn=conn),list)):          
                 return("Нет узла с идентификатором: ") + str(id)
             else:
                 return "Узел " + str(id) + " не иммеет родителей"
