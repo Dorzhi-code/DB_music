@@ -30,6 +30,8 @@ def PrintBeautifully(products=[]):
     for item in result:
         print(item)
 
+# Are there node
+# return True or False
 def GetNode(id = "", conn = psycopg2.connect):
     try:
         if(id == ""):
@@ -51,9 +53,32 @@ def GetNode(id = "", conn = psycopg2.connect):
         result = cursor.fetchall()
 
         if(result ==[]):
+            return "Нет узла с идентификатором: " + str(id)         
+        
+        return result
+    
+    except:
+        return "Не получилось получить узел"
+def GetNodeByTitle(title = "" ,conn = psycopg2.connect):
+    try:
+        if(title == ""):
+            title = input("Введите назвние: ")
+
+        title = title.lower()
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT *
+            FROM neighborhood_tree
+            WHERE LOWER(title) = %s
+        ''', (title,))
+        
+        result = cursor.fetchall()
+
+        if(result ==[]):
             return False        
         else:
             return True
+        
     except:
         return "Не получилось получить узел"
 
@@ -76,6 +101,8 @@ def AddLeaf(conn):
         if(parent_id <= 0):
             return "Идентификатор родителя должен быть положительным целым числом"
 
+        if(GetNodeByTitle(conn=conn, title = title)):
+            return "Узел с названием " + str(title) + " уже существует"
         cursor = conn.cursor()
         cursor.execute('''
             INSERT INTO neighborhood_tree(title, parent_id)
@@ -90,9 +117,7 @@ def AddLeaf(conn):
         cursor.close()
 
         return "Успешно добавили с идентификатором: " + str(result[0][0])    
-    except Exception as e:
-        conn.rollback()
-        return e
+
     except:
         return("Не получилось добавить. ")
 
@@ -126,9 +151,7 @@ def DeleteLeaf(conn):
             return("Нет листа с таким идентификатором")
 
         return "Успешно удалили лист"
-    except Exception as e:
-        conn.rollback()
-        return e
+
     except:
         return("Не удалось удалить лист")
 
@@ -143,7 +166,10 @@ def DeleteSubtree(conn):
         id = int(id)
         if(id <= 0):
             return "Идентификатор  должен быть положительным целым числом"
-                
+
+        if(not isinstance(GetNode(id=id, conn=conn), list)):
+            return("Нет листа с таким идентификатором")
+
         result = len(GetAllDescendants(id, conn)) + 1
         cursor = conn.cursor()
         cursor.execute('''                   
@@ -162,9 +188,7 @@ def DeleteSubtree(conn):
             return "Удалили " + str(result) + " узeл"
 
         return "Удалили " + str(result) + " узлов"
-    except Exception as e:
-        conn.rollback()
-        return e
+
     except:
         return("Не удалось удалить поддерево")
 
@@ -184,6 +208,10 @@ def DeleteNode(conn):
         if(id == 1):
             return "Узел с идентификатором 1 явлется корнем"
         
+        if(not isinstance(GetNode(id=id, conn=conn), list)):
+
+            return("Нет листа с таким идентификатором")
+
         cursor = conn.cursor()
         cursor.execute('''
             UPDATE neighborhood_tree SET parent_id = (SELECT parent_id FROM neighborhood_tree WHERE id = %s) WHERE parent_id = %s;                
@@ -200,9 +228,7 @@ def DeleteNode(conn):
         conn.commit()
 
         return "Успешно удалили узел"
-    except Exception as e:
-        conn.rollback()
-        return e
+
     except:
         return("Не удалось удалить узел")
 
@@ -229,10 +255,10 @@ def GetDirectDescendants(conn):
         cursor.close()
          
         if(result == []):
-            if(GetNode(id=id, conn=conn) == True):
-                return "Узел " + str(id) + " не иммеет потомков"
-            else:
+            if(not isinstance(GetNode(id=id, conn=conn), list)):
                 return("Нет узла с идентификатором: ") + str(id)
+            else:
+                return "Узел " + str(id) + " не иммеет потомков"
         
         return result
     except Exception as e:
@@ -263,15 +289,13 @@ def GetDirectParent(conn):
          
          
         if(result == []):  
-            if(GetNode(id=id, conn=conn) == True):          
-                return "Узел " + str(id) + " не иммеет прямого родителя"
-            else:
+            if(not isinstance(GetNode(id=id, conn=conn), list)):          
                 return("Нет узла с идентификатором: ") + str(id)
+            else:
+                return "Узел " + str(id) + " не иммеет прямого родителя"
         
         return result
-    except Exception as e:
-        conn.rollback()
-        return e
+
     except:
         return("Не удалось получить прямых потомков")
 
@@ -287,7 +311,12 @@ def GetAllDescendants(id = "", conn = psycopg2.connect):
             id = int(id)
             if(id <= 0):
                 return "Идентификатор  должен быть положительным целым числом"
-            
+        curent_node = GetNode(id=id, conn=conn)
+        if(not isinstance(curent_node,list)):
+            return("Нет узла с идентификатором: ") + str(id)
+
+        
+
         cursor = conn.cursor()                
         cursor.execute('''
             WITH RECURSIVE r AS (
@@ -305,18 +334,16 @@ def GetAllDescendants(id = "", conn = psycopg2.connect):
                     ''', (id,))
         
         result = cursor.fetchall()
+        result.extend(curent_node)
+
         cursor.close()
          
-        if(result == []):
-            if(GetNode(id=id, conn=conn) == True):
-                return "Узел " + str(id) + " не иммеет потомков"
-            else:
-                return("Нет узла с идентификатором: ") + str(id)
+        if(result == []):        
+            return "Узел " + str(id) + " не иммеет потомков"
+            
         
         return result
-    except Exception as e:
-        conn.rollback()
-        return e
+
     except:
         return("Не удалось получить всех потомков")
 
@@ -351,15 +378,13 @@ def GetAllParents(conn):
         cursor.close()
          
         if(result == []):  
-            if(GetNode(id=id, conn=conn) == True):          
-                return "Узел " + str(id) + " не иммеет родителей"
-            else:
+            if(isinstance(GetNode(id=id, conn=conn),list)):          
                 return("Нет узла с идентификатором: ") + str(id)
+            else:
+                return "Узел " + str(id) + " не иммеет родителей"
         
         return result
-    except Exception as e:
-        conn.rollback()
-        return e
+
     except:
         return("Не удалось получить всех родителей")
 
