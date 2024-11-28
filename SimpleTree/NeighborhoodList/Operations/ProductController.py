@@ -89,7 +89,7 @@ def AddLeaf(conn):
         conn.commit()
         cursor.close()
 
-        return "Успешно добавили с идентификатором: " + str(result)    
+        return "Успешно добавили с идентификатором: " + str(result[0][0])    
     except Exception as e:
         conn.rollback()
         return e
@@ -181,6 +181,9 @@ def DeleteNode(conn):
         if(id <= 0):
             return "Идентификатор  должен быть положительным целым числом"
                 
+        if(id == 1):
+            return "Узел с идентификатором 1 явлется корнем"
+        
         cursor = conn.cursor()
         cursor.execute('''
             UPDATE neighborhood_tree SET parent_id = (SELECT parent_id FROM neighborhood_tree WHERE id = %s) WHERE parent_id = %s;                

@@ -14,7 +14,8 @@ def get_action_number():
             5 - Получить прямых потомков
             6 - Получить прямого родителя
             7 - Получить всех потомков
-            8 - Получить всех родителей      
+            8 - Получить всех родителей     
+            9 - Получить все дерево 
         """)
     while(True):
         try:
@@ -61,4 +62,6 @@ while(True):
     elif(number_of_acion == 8): # Получить всех родителей
         result = ProductController.GetAllParents(conn)
         ProductController.PrintBeautifully(result)
-
+    elif(number_of_acion == 9): # Получить все дерево
+        result = ProductController.GetAllDescendants(id = 1, conn=conn)
+        ProductController.PrintBeautifully(result)
