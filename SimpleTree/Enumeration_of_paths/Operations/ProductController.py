@@ -4,31 +4,33 @@ from psycopg2 import errors
 
 def PrintBeautifully(products=[]):
     print()
-    if(not isinstance(products, list)):
-        print(products)
-        return
+    # for i in products:
+    print(products)
+    # if(not isinstance(products, list)):
+    #     print(products)
+    #     return
     
-    from collections import defaultdict
-    tree = defaultdict(list)
-    mn = 1e9
-    mn_product = []
-    for product in products:
-        tree[product[2]].append(product)
-        if( mn > product[0]):
-            mn = product[0]
-            mn_product = product
+    # from collections import defaultdict
+    # tree = defaultdict(list)
+    # mn = 1e9
+    # mn_product = []
+    # for product in products:
+    #     tree[product[2]].append(product)
+    #     if( mn > product[0]):
+    #         mn = product[0]
+    #         mn_product = product
 
-    def format_tree(node_id, level = 1):
-        result = []
+    # def format_tree(node_id, level = 1):
+    #     result = []
         
-        for child in tree[node_id]:
-            result.append(str(child[0]).rjust(3) +  '    ' * level + child[1])
-            result.extend(format_tree(child[0], level + 1))
-        return result
-    result = [str(mn_product[0]).rjust(3) + ' ' + mn_product[1]]
-    result = format_tree(mn_product[2])
-    for item in result:
-        print(item)
+    #     for child in tree[node_id]:
+    #         result.append(str(child[0]).rjust(3) +  '    ' * level + child[1])
+    #         result.extend(format_tree(child[0], level + 1))
+    #     return result
+    # result = [str(mn_product[0]).rjust(3) + ' ' + mn_product[1]]
+    # result = format_tree(mn_product[2])
+    # for item in result:
+    #     print(item)
 
 # Are there node
 # return True or False
@@ -46,7 +48,7 @@ def GetNode(id = "", conn = psycopg2.connect):
         cursor = conn.cursor()
         cursor.execute('''
             SELECT *
-            FROM neighborhood_tree
+            FROM path_enum
             WHERE id = %s
         ''', (id,))
         
@@ -68,7 +70,7 @@ def GetNodeByTitle(title = "" ,conn = psycopg2.connect):
         cursor = conn.cursor()
         cursor.execute('''
             SELECT *
-            FROM neighborhood_tree
+            FROM path_enum
             WHERE LOWER(title) = %s
         ''', (title,))
         
@@ -92,9 +94,6 @@ def AddLeaf(conn):
             return "Название не может быть пустым"
         
         title = ' '.join(title.split())
-        
-        if(GetNodeByTitle(conn=conn, title = title)):
-            return "Узел с названием " + str(title) + " уже существует"
 
         parent_id = input("Введите идентификатор родителя: ")
         parent_id = parent_id.strip()
@@ -104,12 +103,15 @@ def AddLeaf(conn):
         if(parent_id <= 0):
             return "Идентификатор родителя должен быть положительным целым числом"
 
+        if(GetNodeByTitle(conn=conn, title = title)):
+            return "Узел с названием " + str(title) + " уже существует"
         cursor = conn.cursor()
         cursor.execute('''
-            INSERT INTO neighborhood_tree(title, parent_id)
-            VALUES
-                    (%s, %s)
-            RETURNING id;
+            INSERT INTO path_enum (title) VALUES (%s)            
+            UPDATE path_enum SET path = (
+                SELECT path FROM path_enum WHERE id = %s
+            ) || LAST_INSERT_ID() || '/'
+            WHERE id = LAST_INSERT_ID()
                     ''', (title, parent_id))
         
         result  = cursor.fetchall()
@@ -122,7 +124,7 @@ def AddLeaf(conn):
     except:
         return("Не получилось добавить. ")
 
-# Удаление листа. На вход Идентификатор 
+# Удаление листа. На вход Идентификатор листа
 # ? return int (количество удаленных)
 def DeleteLeaf(conn):
     try:            
@@ -143,7 +145,7 @@ def DeleteLeaf(conn):
         
         cursor = conn.cursor()        
         cursor.execute('''
-            DELETE FROM neighborhood_tree
+            DELETE FROM path_enum
             WHERE id = %s        
                     ''', (id,))
         
@@ -177,9 +179,12 @@ def DeleteSubtree(conn):
         result = len(GetAllDescendants(id, conn)) + 1
         cursor = conn.cursor()
         cursor.execute('''                   
-            DELETE FROM neighborhood_tree
-            WHERE id = %s
-            RETURNING *
+            DELETE FROM path_enum WHERE id IN (
+                SELECT id FROM path_enum
+                WHERE path LIKE (
+                    SELECT path || '%' FROM path_enum WHERE id = %s
+                )
+            )
             ''', (id,))
         
         conn.commit()
@@ -218,12 +223,18 @@ def DeleteNode(conn):
 
         cursor = conn.cursor()
         cursor.execute('''
-            UPDATE neighborhood_tree SET parent_id = (SELECT parent_id FROM neighborhood_tree WHERE id = %s) WHERE parent_id = %s;                
-                    ''', (id, id))
+                    -- удалим из пути потомков удаляемый узел
+                    UPDATE path_enum SET path = SUBSTRING(
+                        REPLACE(
+                            '/%s/', CONCAT('/', path),'/'
+                        ), 2
+                    )
+
+                    ''', (id,))
         
         cursor.execute('''
-            DELETE FROM neighborhood_tree WHERE id = %s;
-                    ''', (id,))
+                    DELETE FROM path_enum WHERE id = %s
+                       ''', (id,))
         
         result = cursor.rowcount
         if(result == 0):
@@ -250,9 +261,13 @@ def GetDirectDescendants(conn):
         
         cursor = conn.cursor()
         cursor.execute('''
-            SELECT * 
-            FROM neighborhood_tree
-            WHERE parent_id = %s            
+            SELECT * FROM path_enum
+            WHERE SUBSTRING(
+                path, 1, LOCATE(
+                    '/', 
+                    REVERSE( SUBSTRING(path, 1, LENGTH(path)-1) )
+                )
+            ) LIKE (SELECT path FROM path_enum WHERE id = %s)        
                     ''', (id,))
         
         result = cursor.fetchall()
@@ -283,9 +298,17 @@ def GetDirectParent(conn):
             return "Идентификатор  должен быть положительным целым числом"
         cursor = conn.cursor()        
         cursor.execute('''
-            SELECT *
-            FROM neighborhood_tree
-            WHERE id = (SELECT parent_id FROM neighborhood_tree WHERE id = %s)
+            SELECT * FROM path_enum WHERE path LIKE (
+                SELECT
+                SUBSTRING(
+                    path, 1, LOCATE(
+                        '/'
+                        , REVERSE( SUBSTRING( path, 1, LENGTH(path)-1 ) )
+                    )
+                )
+                FROM path_enum WHERE id = %s
+            )
+
                     ''', (id,))
         
         result = cursor.fetchall()
@@ -306,7 +329,7 @@ def GetDirectParent(conn):
 # Получение всех потомков. На вход Идентификатор узла
 # ? return Array[id, title, parent_id]
 def GetAllDescendants(id = "", conn = psycopg2.connect):
-    try:         
+    # try:         
         if(id == ""):            
             id = input("Введите идентификатор: ")
             id = id.strip()
@@ -316,6 +339,7 @@ def GetAllDescendants(id = "", conn = psycopg2.connect):
             if(id <= 0):
                 return "Идентификатор  должен быть положительным целым числом"
         curent_node = GetNode(id=id, conn=conn)
+        print(curent_node)
         if(not isinstance(curent_node,list)):
             return("Нет узла с идентификатором: ") + str(id)
 
@@ -323,22 +347,14 @@ def GetAllDescendants(id = "", conn = psycopg2.connect):
 
         cursor = conn.cursor()                
         cursor.execute('''
-            WITH RECURSIVE r AS (
-                SELECT id, title, parent_id
-                FROM neighborhood_tree
-                WHERE parent_id = %s            
-                UNION 
-                SELECT neighborhood_tree.id, neighborhood_tree.title, neighborhood_tree.parent_id
-                FROM neighborhood_tree
-                    JOIN r
-                    ON neighborhood_tree.parent_id = r.id
-            )
-            
-            SELECT * FROM r;     
+            SELECT * FROM path_enum
+                WHERE path LIKE (
+                    SELECT path || '%' FROM path_enum WHERE id = %s
+                )    
                     ''', (id,))
         
         result = cursor.fetchall()
-        result.extend(curent_node)
+        # result.extend(curent_node)
 
         cursor.close()
          
@@ -348,8 +364,8 @@ def GetAllDescendants(id = "", conn = psycopg2.connect):
         
         return result
 
-    except:
-        return("Не удалось получить всех потомков")
+    # except:
+    #     return("Не удалось получить всех потомков")
 
 # Получение всех родителей. На вход Идентификатор узла
 # ? return Array[id, title, parent_id]
