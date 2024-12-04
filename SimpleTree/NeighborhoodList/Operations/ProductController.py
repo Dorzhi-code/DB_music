@@ -265,8 +265,6 @@ def GetDirectDescendants(conn):
                 return "Узел " + str(id) + " не иммеет потомков"
         
         return result
-    except Exception as e:
-            return e
     except:
         return("Не удалось получить прямых потомков")
 

@@ -2,35 +2,57 @@ import psycopg2
 from psycopg2.errorcodes import UNIQUE_VIOLATION
 from psycopg2 import errors
 
+def get_parent_num(st):
+    result = ''
+    for i in st:
+        if i.isdigit():
+            result+=i
+        else:
+            result+=','
+
+    result1 = result.split(',')
+    output = []
+    
+    for i in result1:
+        if i != '':
+            output.append(i)
+            
+    if(len(output) >= 2):
+        return output[-2]
+    return int(output[0])
+
 def PrintBeautifully(products=[]):
     print()
-    # for i in products:
-    print(products)
-    # if(not isinstance(products, list)):
-    #     print(products)
-    #     return
+    if(not isinstance(products, list)):
+        print(products)
+        return
     
-    # from collections import defaultdict
-    # tree = defaultdict(list)
-    # mn = 1e9
-    # mn_product = []
-    # for product in products:
-    #     tree[product[2]].append(product)
-    #     if( mn > product[0]):
-    #         mn = product[0]
-    #         mn_product = product
+    for i in products:
+        print(i)
 
-    # def format_tree(node_id, level = 1):
-    #     result = []
+    from collections import defaultdict
+    tree = defaultdict(list)
+    mn = 1e9
+    mn_product = []
+    for product in products:
+        num = get_parent_num(product[2])        
+        tree[num].append(product)
+        if( mn > product[0]):
+            mn = product[0]
+            mn_product = product
+
+    def format_tree(node_id, level = 1):
+        result = []
         
-    #     for child in tree[node_id]:
-    #         result.append(str(child[0]).rjust(3) +  '    ' * level + child[1])
-    #         result.extend(format_tree(child[0], level + 1))
-    #     return result
-    # result = [str(mn_product[0]).rjust(3) + ' ' + mn_product[1]]
-    # result = format_tree(mn_product[2])
-    # for item in result:
-    #     print(item)
+        for child in tree[node_id]:
+            result.append(str(child[0]).rjust(3) +  '    ' * level + child[1])
+            result.extend(format_tree(child[0], level + 1))
+        return result
+    result = [str(mn_product[0]).rjust(3) + ' ' + mn_product[1]]
+    nm = get_parent_num(mn_product[2])
+    result = format_tree(nm)
+    for item in result:
+        print(item)
 
 # Are there node
 # return True or False
@@ -182,7 +204,7 @@ def DeleteSubtree(conn):
             DELETE FROM path_enum WHERE id IN (
                 SELECT id FROM path_enum
                 WHERE path LIKE (
-                    SELECT path || '%' FROM path_enum WHERE id = %s
+                    SELECT path || '%%' FROM path_enum WHERE id = %s
                 )
             )
             ''', (id,))
@@ -250,7 +272,7 @@ def DeleteNode(conn):
 # Получение прямых потомков. На вход Идентификатор узла
 # ? return Array[id, title, parent_id]
 def GetDirectDescendants(conn):
-    try:       
+    # try:       
         id = input("Введите идентификатор: ")
         id = id.strip()
         if(not id.isdigit()):
@@ -263,11 +285,10 @@ def GetDirectDescendants(conn):
         cursor.execute('''
             SELECT * FROM path_enum
             WHERE SUBSTRING(
-                path, 1, LOCATE(
-                    '/', 
-                    REVERSE( SUBSTRING(path, 1, LENGTH(path)-1) )
+                path, 1, LENGTH(path) - POSITION(
+                    '/' in REVERSE( SUBSTRING(path, 1, LENGTH(path)-1) )
                 )
-            ) LIKE (SELECT path FROM path_enum WHERE id = %s)        
+            ) LIKE(SELECT path FROM path_enum WHERE id = %s)        
                     ''', (id,))
         
         result = cursor.fetchall()
@@ -280,10 +301,8 @@ def GetDirectDescendants(conn):
                 return "Узел " + str(id) + " не иммеет потомков"
         
         return result
-    except Exception as e:
-            return e
-    except:
-        return("Не удалось получить прямых потомков")
+    # except:
+    #     return("Не удалось получить прямых потомков")
 
 # Получение прямого родителя. На вход Идентификатор узла
 # ? return Array[id, title, parent_id]
@@ -301,9 +320,8 @@ def GetDirectParent(conn):
             SELECT * FROM path_enum WHERE path LIKE (
                 SELECT
                 SUBSTRING(
-                    path, 1, LOCATE(
-                        '/'
-                        , REVERSE( SUBSTRING( path, 1, LENGTH(path)-1 ) )
+                    path, 1, LENGTH(path) - POSITION(
+                        '/' in  REVERSE( SUBSTRING( path, 1, LENGTH(path)-1 ) )
                     )
                 )
                 FROM path_enum WHERE id = %s
@@ -339,7 +357,6 @@ def GetAllDescendants(id = "", conn = psycopg2.connect):
             if(id <= 0):
                 return "Идентификатор  должен быть положительным целым числом"
         curent_node = GetNode(id=id, conn=conn)
-        print(curent_node)
         if(not isinstance(curent_node,list)):
             return("Нет узла с идентификатором: ") + str(id)
 
@@ -349,7 +366,7 @@ def GetAllDescendants(id = "", conn = psycopg2.connect):
         cursor.execute('''
             SELECT * FROM path_enum
                 WHERE path LIKE (
-                    SELECT path || '%' FROM path_enum WHERE id = %s
+                    SELECT path || '%%' FROM path_enum WHERE id = %s
                 )    
                     ''', (id,))
         
@@ -380,18 +397,11 @@ def GetAllParents(conn):
             return "Идентификатор  должен быть положительным целым числом"
         cursor = conn.cursor()        
         cursor.execute('''
-            WITH RECURSIVE r AS (
-                SELECT id, title, parent_id
-                FROM neighborhood_tree
-                WHERE id = %s            
-                UNION 
-                SELECT neighborhood_tree.id, neighborhood_tree.title, neighborhood_tree.parent_id
-                FROM neighborhood_tree
-                    JOIN r
-                        ON neighborhood_tree.id = r.parent_id
-            )
-            
-            SELECT * FROM r;     
+            SELECT * FROM path_enum
+            WHERE (
+                SELECT path FROM path_enum WHERE id = %s
+            ) LIKE path || '%%'
+    
                         ''', (id,))
 
         result = cursor.fetchall()
