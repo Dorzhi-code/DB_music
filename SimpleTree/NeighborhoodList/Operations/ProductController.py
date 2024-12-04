@@ -141,7 +141,7 @@ def DeleteLeaf(conn):
         if(not isinstance(GetNode(id=id, conn=conn), list)):
             return("Нет листа с таким идентификатором")
 
-        if(not isinstance(GetAllDescendants(id = id, conn=conn), list)):
+        if(isinstance(GetAllDescendants(id = id, conn=conn), list)):
             return "Узел с идентификатором: " + str(id) + " не является листом"
         
         cursor = conn.cursor()        

@@ -3,7 +3,7 @@ from psycopg2.errorcodes import UNIQUE_VIOLATION
 from psycopg2 import errors
 
 # Получить идентификатор родителя
-def get_parent_num(st):
+def get_parent_num(st=""):
     result = ''
     for i in st:
         if i.isdigit():
@@ -56,7 +56,7 @@ def PrintBeautifully(products=[]):
             result.append(str(child[0]).rjust(3) +  '    ' * level + child[1])
             result.extend(format_tree(child[0], level + 1))
         return result
-    # result = [str(root_product[0]).rjust(3) + ' ' + root_product[1]]
+
     parent = get_parent_num(root_product[2])
     result = format_tree(parent)
     for item in result:
@@ -153,9 +153,6 @@ def AddLeaf(conn):
             WHERE id = %s
                        ''', (parent_id,id,id,))
         
-        
-
-
         conn.commit()
         cursor.close()
 
@@ -180,10 +177,10 @@ def DeleteLeaf(conn):
         
         if(not isinstance(GetNode(id=id, conn=conn), list)):
             return("Нет листа с таким идентификатором")
-
-        if(not isinstance(GetAllDescendants(id = id, conn=conn), list)):
-            return "Узел с идентификатором: " + str(id) + " не является листом"
         
+        if(isinstance(GetAllDescendants(id = id, conn=conn), list)):
+            return "Узел с идентификатором: " + str(id) + " не является листом"
+
         cursor = conn.cursor()        
         cursor.execute('''
             DELETE FROM path_enum
@@ -218,7 +215,7 @@ def DeleteSubtree(conn):
         if(not isinstance(GetNode(id=id, conn=conn), list)):
             return("Нет узла с таким идентификатором")
 
-        result = len(GetAllDescendants(id, conn)) + 1
+        result = len(GetAllDescendants(id, conn))
         cursor = conn.cursor()
         cursor.execute('''                   
             DELETE FROM path_enum WHERE id IN (
@@ -248,7 +245,7 @@ def DeleteSubtree(conn):
 # Удаление узла с переподчинением. На вход Идентификатор узла
 # ? return int (количество удаленных)
 def DeleteNode(conn):
-    try:        
+    # try:        
         id = input("Введите идентификатор: ")
         id = id.strip()
         if(not id.isdigit()):
@@ -265,19 +262,19 @@ def DeleteNode(conn):
             return("Нет листа с таким идентификатором")
 
         cursor = conn.cursor()
-        cursor.execute('''
-                    -- удалим из пути потомков удаляемый узел
-                    UPDATE path_enum SET path = SUBSTRING(
-                        REPLACE(
-                            '/%s/', CONCAT('/', path),'/'
-                        ), 2
-                    )
-
-                    ''', (id,))
         
         cursor.execute('''
                     DELETE FROM path_enum WHERE id = %s
                        ''', (id,))
+        cursor.execute('''
+                    -- удалим из пути потомков удаляемый узел
+                    UPDATE path_enum SET path = (
+                        REPLACE(
+                            path, '/%s/', '/'
+                        )
+                    )
+
+                    ''', (id,))
         
         result = cursor.rowcount
         if(result == 0):
@@ -287,9 +284,9 @@ def DeleteNode(conn):
 
         return "Успешно удалили узел"
 
-    except:
-        conn.rollback()
-        return("Не удалось удалить узел")
+    # except:
+    #     conn.rollback()
+    #     return("Не удалось удалить узел")
 
 # Получение прямых потомков. На вход Идентификатор узла
 # ? return Array[id, title, parent_id]

@@ -10,7 +10,7 @@ def get_action_number():
             1 - Добавить лист
             2 - Удалить лист
             3 - Удалить поддерево  
-            4 - Удалить узел с переподчинением 
+            4 - Удалить узел без поддерева
             5 - Получить прямых потомков
             6 - Получить прямого родителя
             7 - Получить всех потомков
@@ -43,7 +43,7 @@ while(True):
     elif(number_of_acion == 3): # Удалить поддерево                 
         print(ProductController.DeleteSubtree(conn))
 
-    elif(number_of_acion == 4): # Удалить узел с переподчинением 
+    elif(number_of_acion == 4): # Удалить узел без поддерева 
         print(ProductController.DeleteNode(conn))
         
     elif(number_of_acion == 5): # Получить прямых потомков
