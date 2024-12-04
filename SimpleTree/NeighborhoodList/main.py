@@ -63,5 +63,5 @@ while(True):
         result = ProductController.GetAllParents(conn)
         ProductController.PrintBeautifully(result)
     elif(number_of_acion == 9): # Получить все дерево
-        result = ProductController.GetAllDescendants(id = 1, conn=conn)
+        result = ProductController.GetAll(conn=conn)
         ProductController.PrintBeautifully(result)

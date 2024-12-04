@@ -58,6 +58,7 @@ def GetNode(id = "", conn = psycopg2.connect):
         return result
     
     except:
+        conn.rollback()
         return "Не получилось получить узел"
 def GetNodeByTitle(title = "" ,conn = psycopg2.connect):
     try:
@@ -80,6 +81,7 @@ def GetNodeByTitle(title = "" ,conn = psycopg2.connect):
             return True
         
     except:
+        conn.rollback()
         return "Не получилось получить узел"
 
 # Добавление листа в дерево. На вход Название, Идентификатор родителя
@@ -120,6 +122,7 @@ def AddLeaf(conn):
         return "Успешно добавили с идентификатором: " + str(result[0][0])    
 
     except:
+        conn.rollback()
         return("Не получилось добавить. ")
 
 # Удаление листа. На вход Идентификатор 
@@ -157,6 +160,7 @@ def DeleteLeaf(conn):
         return "Успешно удалили лист"
 
     except:
+        conn.rollback()
         return("Не удалось удалить лист")
 
 # Удаление поддерева. На вход Идентификатор узла
@@ -194,6 +198,7 @@ def DeleteSubtree(conn):
         return "Удалили " + str(result) + " узлов"
 
     except:
+        conn.rollback()
         return("Не удалось удалить поддерево")
 
 
@@ -234,6 +239,7 @@ def DeleteNode(conn):
         return "Успешно удалили узел"
 
     except:
+        conn.rollback()
         return("Не удалось удалить узел")
 
 # Получение прямых потомков. На вход Идентификатор узла
@@ -266,6 +272,7 @@ def GetDirectDescendants(conn):
         
         return result
     except:
+        conn.rollback()
         return("Не удалось получить прямых потомков")
 
 # Получение прямого родителя. На вход Идентификатор узла
@@ -299,6 +306,7 @@ def GetDirectParent(conn):
         return result
 
     except:
+        conn.rollback()
         return("Не удалось получить прямых потомков")
 
 # Получение всех потомков. На вход Идентификатор узла
@@ -347,6 +355,7 @@ def GetAllDescendants(id = "", conn = psycopg2.connect):
         return result
 
     except:
+        conn.rollback()
         return("Не удалось получить всех потомков")
 
 # Получение всех родителей. На вход Идентификатор узла
@@ -388,8 +397,24 @@ def GetAllParents(conn):
         return result
 
     except:
+        conn.rollback()
         return("Не удалось получить всех родителей")
 
+def GetAll(conn):
+    try:        
+        cursor = conn.cursor()        
+        cursor.execute('''
+           SELECT *
+           FROM neighborhood_tree
+                        ''',)
+
+        result = cursor.fetchall()
+        cursor.close()
+        return result
+
+    except:
+        conn.rollback()
+        return("Не удалось получить всех ")
 
 
     
