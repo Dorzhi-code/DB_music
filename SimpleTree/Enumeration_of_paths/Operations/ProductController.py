@@ -18,8 +18,8 @@ def get_parent_num(st):
             output.append(i)
             
     if(len(output) >= 2):
-        return output[-2]
-    return int(output[0])
+        return int(output[-2])
+    return None
 
 def PrintBeautifully(products=[]):
     print()
@@ -27,8 +27,8 @@ def PrintBeautifully(products=[]):
         print(products)
         return
     
-    for i in products:
-        print(i)
+    # for i in products:
+    #     print(i)
 
     from collections import defaultdict
     tree = defaultdict(list)
@@ -36,6 +36,10 @@ def PrintBeautifully(products=[]):
     mn_product = []
     for product in products:
         num = get_parent_num(product[2])        
+        # if(num == None):
+        #     mn = product[0]
+        #     mn_product = product
+        #     continue
         tree[num].append(product)
         if( mn > product[0]):
             mn = product[0]
@@ -109,7 +113,7 @@ def GetNodeByTitle(title = "" ,conn = psycopg2.connect):
 # Добавление листа в дерево. На вход Название, Идентификатор родителя
 # ? return id
 def AddLeaf(conn):
-    try:
+    # try:
         title = input("Введите название: ")        
         title = title.strip()
         if(title == ""):
@@ -117,34 +121,42 @@ def AddLeaf(conn):
         
         title = ' '.join(title.split())
 
+        if(GetNodeByTitle(conn=conn, title = title)):
+            return "Узел с названием " + str(title) + " уже существует"
+
         parent_id = input("Введите идентификатор родителя: ")
         parent_id = parent_id.strip()
         if(not parent_id.isdigit()):
             return "Идентификатор родителя должен быть положительным целым числом"
+        
         parent_id = int(parent_id)
         if(parent_id <= 0):
             return "Идентификатор родителя должен быть положительным целым числом"
 
-        if(GetNodeByTitle(conn=conn, title = title)):
-            return "Узел с названием " + str(title) + " уже существует"
         cursor = conn.cursor()
         cursor.execute('''
-            INSERT INTO path_enum (title) VALUES (%s)            
+            INSERT INTO path_enum (title) VALUES (%s)   
+            RETURNING id                     
+                    ''', (title, ))
+        id = cursor.fetchall()[0]
+        cursor.execute('''
             UPDATE path_enum SET path = (
                 SELECT path FROM path_enum WHERE id = %s
-            ) || LAST_INSERT_ID() || '/'
-            WHERE id = LAST_INSERT_ID()
-                    ''', (title, parent_id))
+            ) || %s || '/'
+            WHERE id = %s
+                       ''', (parent_id,id,id,))
         
-        result  = cursor.fetchall()
+        
+
 
         conn.commit()
         cursor.close()
 
-        return "Успешно добавили с идентификатором: " + str(result[0][0])    
+        return "Успешно добавили с идентификатором: " + str(id[0])    
 
-    except:
-        return("Не получилось добавить. ")
+    # except:
+    #     conn.rollback()
+    #     return("Не получилось добавить. ")
 
 # Удаление листа. На вход Идентификатор листа
 # ? return int (количество удаленных)
@@ -181,6 +193,7 @@ def DeleteLeaf(conn):
         return "Успешно удалили лист"
 
     except:
+        conn.rollback()
         return("Не удалось удалить лист")
 
 # Удаление поддерева. На вход Идентификатор узла
@@ -221,6 +234,7 @@ def DeleteSubtree(conn):
         return "Удалили " + str(result) + " узлов"
 
     except:
+        conn.rollback()
         return("Не удалось удалить поддерево")
 
 
@@ -267,6 +281,7 @@ def DeleteNode(conn):
         return "Успешно удалили узел"
 
     except:
+        conn.rollback()
         return("Не удалось удалить узел")
 
 # Получение прямых потомков. На вход Идентификатор узла
@@ -288,7 +303,8 @@ def GetDirectDescendants(conn):
                 path, 1, LENGTH(path) - POSITION(
                     '/' in REVERSE( SUBSTRING(path, 1, LENGTH(path)-1) )
                 )
-            ) LIKE(SELECT path FROM path_enum WHERE id = %s)        
+            ) LIKE(SELECT path FROM path_enum WHERE id = %s)       
+            ORDER BY title 
                     ''', (id,))
         
         result = cursor.fetchall()
@@ -302,6 +318,7 @@ def GetDirectDescendants(conn):
         
         return result
     # except:
+        # conn.rollback() 
     #     return("Не удалось получить прямых потомков")
 
 # Получение прямого родителя. На вход Идентификатор узла
@@ -326,13 +343,13 @@ def GetDirectParent(conn):
                 )
                 FROM path_enum WHERE id = %s
             )
+            ORDER BY title 
 
                     ''', (id,))
         
         result = cursor.fetchall()
         cursor.close()
-         
-         
+                  
         if(result == []):  
             if(not isinstance(GetNode(id=id, conn=conn), list)):          
                 return("Нет узла с идентификатором: ") + str(id)
@@ -342,6 +359,7 @@ def GetDirectParent(conn):
         return result
 
     except:
+        conn.rollback()
         return("Не удалось получить прямых потомков")
 
 # Получение всех потомков. На вход Идентификатор узла
@@ -360,14 +378,15 @@ def GetAllDescendants(id = "", conn = psycopg2.connect):
         if(not isinstance(curent_node,list)):
             return("Нет узла с идентификатором: ") + str(id)
 
-        
-
         cursor = conn.cursor()                
         cursor.execute('''
-            SELECT * FROM path_enum
-                WHERE path LIKE (
-                    SELECT path || '%%' FROM path_enum WHERE id = %s
-                )    
+            SELECT * 
+            FROM path_enum
+            WHERE path LIKE (
+                SELECT path || '%%' FROM path_enum WHERE id = %s
+            )    
+            ORDER BY title 
+            
                     ''', (id,))
         
         result = cursor.fetchall()
@@ -382,6 +401,7 @@ def GetAllDescendants(id = "", conn = psycopg2.connect):
         return result
 
     # except:
+    #     conn.rollback()
     #     return("Не удалось получить всех потомков")
 
 # Получение всех родителей. На вход Идентификатор узла
@@ -397,11 +417,12 @@ def GetAllParents(conn):
             return "Идентификатор  должен быть положительным целым числом"
         cursor = conn.cursor()        
         cursor.execute('''
-            SELECT * FROM path_enum
+            SELECT * 
+            FROM path_enum
             WHERE (
                 SELECT path FROM path_enum WHERE id = %s
             ) LIKE path || '%%'
-    
+            ORDER BY title     
                         ''', (id,))
 
         result = cursor.fetchall()
@@ -416,8 +437,27 @@ def GetAllParents(conn):
         return result
 
     except:
+        conn.rollback()
         return("Не удалось получить всех родителей")
 
 
+def GetAll(conn):
+    try:
+        cursor = conn.cursor()        
+        cursor.execute('''
+            SELECT * 
+            FROM path_enum
+            ORDER BY title     
+                        ''')
 
-    
+        result = cursor.fetchall()
+        cursor.close()
+         
+        if(result == []):  
+            return "Нет ничего"
+        
+        return result
+
+    except:
+        conn.rollback()
+        return("Не удалось получить всех")    
