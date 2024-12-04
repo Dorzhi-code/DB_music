@@ -2,6 +2,7 @@ import psycopg2
 from psycopg2.errorcodes import UNIQUE_VIOLATION
 from psycopg2 import errors
 
+# Получить идентификатор родителя
 def get_parent_num(st):
     result = ''
     for i in st:
@@ -21,29 +22,32 @@ def get_parent_num(st):
         return int(output[-2])
     return None
 
+# Получить уровень 
+def get_level(st):
+    result = 0
+    for i in st:
+        if(i == '/'):
+            result+=1
+    return result
+
+# Многоуровневый вывод
 def PrintBeautifully(products=[]):
     print()
     if(not isinstance(products, list)):
         print(products)
         return
     
-    # for i in products:
-    #     print(i)
-
     from collections import defaultdict
     tree = defaultdict(list)
-    mn = 1e9
-    mn_product = []
+    root_level = 1e9
+    root_product = []
     for product in products:
         num = get_parent_num(product[2])        
-        # if(num == None):
-        #     mn = product[0]
-        #     mn_product = product
-        #     continue
-        tree[num].append(product)
-        if( mn > product[0]):
-            mn = product[0]
-            mn_product = product
+        tree[num].append(product)      
+        level = get_level(product[2])  
+        if( root_level > level):
+            root_level = level
+            root_product = product
 
     def format_tree(node_id, level = 1):
         result = []
@@ -52,9 +56,9 @@ def PrintBeautifully(products=[]):
             result.append(str(child[0]).rjust(3) +  '    ' * level + child[1])
             result.extend(format_tree(child[0], level + 1))
         return result
-    result = [str(mn_product[0]).rjust(3) + ' ' + mn_product[1]]
-    nm = get_parent_num(mn_product[2])
-    result = format_tree(nm)
+    # result = [str(root_product[0]).rjust(3) + ' ' + root_product[1]]
+    parent = get_parent_num(root_product[2])
+    result = format_tree(parent)
     for item in result:
         print(item)
 
@@ -87,6 +91,9 @@ def GetNode(id = "", conn = psycopg2.connect):
     
     except:
         return "Не получилось получить узел"
+    
+# Are there node
+# return True or False
 def GetNodeByTitle(title = "" ,conn = psycopg2.connect):
     try:
         if(title == ""):
@@ -113,7 +120,7 @@ def GetNodeByTitle(title = "" ,conn = psycopg2.connect):
 # Добавление листа в дерево. На вход Название, Идентификатор родителя
 # ? return id
 def AddLeaf(conn):
-    # try:
+    try:
         title = input("Введите название: ")        
         title = title.strip()
         if(title == ""):
@@ -154,9 +161,9 @@ def AddLeaf(conn):
 
         return "Успешно добавили с идентификатором: " + str(id[0])    
 
-    # except:
-    #     conn.rollback()
-    #     return("Не получилось добавить. ")
+    except:
+        conn.rollback()
+        return("Не получилось добавить. ")
 
 # Удаление листа. На вход Идентификатор листа
 # ? return int (количество удаленных)
@@ -287,7 +294,7 @@ def DeleteNode(conn):
 # Получение прямых потомков. На вход Идентификатор узла
 # ? return Array[id, title, parent_id]
 def GetDirectDescendants(conn):
-    # try:       
+    try:       
         id = input("Введите идентификатор: ")
         id = id.strip()
         if(not id.isdigit()):
@@ -317,9 +324,9 @@ def GetDirectDescendants(conn):
                 return "Узел " + str(id) + " не иммеет потомков"
         
         return result
-    # except:
-        # conn.rollback() 
-    #     return("Не удалось получить прямых потомков")
+    except:
+        conn.rollback() 
+        return("Не удалось получить прямых потомков")
 
 # Получение прямого родителя. На вход Идентификатор узла
 # ? return Array[id, title, parent_id]
@@ -365,7 +372,7 @@ def GetDirectParent(conn):
 # Получение всех потомков. На вход Идентификатор узла
 # ? return Array[id, title, parent_id]
 def GetAllDescendants(id = "", conn = psycopg2.connect):
-    # try:         
+    try:         
         if(id == ""):            
             id = input("Введите идентификатор: ")
             id = id.strip()
@@ -390,7 +397,6 @@ def GetAllDescendants(id = "", conn = psycopg2.connect):
                     ''', (id,))
         
         result = cursor.fetchall()
-        # result.extend(curent_node)
 
         cursor.close()
          
@@ -400,9 +406,9 @@ def GetAllDescendants(id = "", conn = psycopg2.connect):
         
         return result
 
-    # except:
-    #     conn.rollback()
-    #     return("Не удалось получить всех потомков")
+    except:
+        conn.rollback()
+        return("Не удалось получить всех потомков")
 
 # Получение всех родителей. На вход Идентификатор узла
 # ? return Array[id, title, parent_id]
