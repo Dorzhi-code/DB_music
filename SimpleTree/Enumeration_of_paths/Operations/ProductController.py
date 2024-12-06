@@ -68,6 +68,7 @@ def GetNode(id = "", conn = psycopg2.connect):
     try:
         if(id == ""):
             id = input("Введите идентификатор: ")
+
             id = id.strip()
             if(not id.isdigit()):
                 return "Идентификатор  должен быть положительным целым числом"
@@ -157,7 +158,6 @@ def AddLeaf(conn):
         cursor.close()
 
         return "Успешно добавили с идентификатором: " + str(id[0])    
-
     except:
         conn.rollback()
         return("Не получилось добавить. ")
@@ -178,7 +178,8 @@ def DeleteLeaf(conn):
         if(not isinstance(GetNode(id=id, conn=conn), list)):
             return("Нет листа с таким идентификатором")
         
-        if(isinstance(GetAllDescendants(id = id, conn=conn), list)):
+        descendants = GetAllDescendants(id = id, conn=conn)
+        if(not isinstance(descendants, list) or len(descendants) > 1):
             return "Узел с идентификатором: " + str(id) + " не является листом"
 
         cursor = conn.cursor()        
@@ -195,7 +196,6 @@ def DeleteLeaf(conn):
             return("Нет листа с таким идентификатором")
 
         return "Успешно удалили лист"
-
     except:
         conn.rollback()
         return("Не удалось удалить лист")
@@ -245,7 +245,7 @@ def DeleteSubtree(conn):
 # Удаление узла с переподчинением. На вход Идентификатор узла
 # ? return int (количество удаленных)
 def DeleteNode(conn):
-    # try:        
+    try:        
         id = input("Введите идентификатор: ")
         id = id.strip()
         if(not id.isdigit()):
@@ -263,11 +263,11 @@ def DeleteNode(conn):
 
         cursor = conn.cursor()
         
+        cursor.execute(
+            '''
+                DELETE FROM path_enum WHERE id = %s
+            ''', (id,))
         cursor.execute('''
-                    DELETE FROM path_enum WHERE id = %s
-                       ''', (id,))
-        cursor.execute('''
-                    -- удалим из пути потомков удаляемый узел
                     UPDATE path_enum SET path = (
                         REPLACE(
                             path, '/%s/', '/'
@@ -284,14 +284,14 @@ def DeleteNode(conn):
 
         return "Успешно удалили узел"
 
-    # except:
-    #     conn.rollback()
-    #     return("Не удалось удалить узел")
+    except:
+        conn.rollback()
+        return("Не удалось удалить узел")
 
 # Получение прямых потомков. На вход Идентификатор узла
 # ? return Array[id, title, parent_id]
 def GetDirectDescendants(conn):
-    try:       
+    # try:       
         id = input("Введите идентификатор: ")
         id = id.strip()
         if(not id.isdigit()):
@@ -302,28 +302,33 @@ def GetDirectDescendants(conn):
         
         cursor = conn.cursor()
         cursor.execute('''
-            SELECT * FROM path_enum
+            SELECT * 
+            FROM path_enum
             WHERE SUBSTRING(
-                path, 1, LENGTH(path) - POSITION(
-                    '/' in REVERSE( SUBSTRING(path, 1, LENGTH(path)-1) )
-                )
-            ) LIKE(SELECT path FROM path_enum WHERE id = %s)       
+                    path, 1, LENGTH(path) - POSITION(
+                        '/' in  REVERSE( SUBSTRING( path, 1, LENGTH(path)-1 ) )
+                    )
+                ) LIKE(SELECT path FROM path_enum WHERE id = %s)   
+            UNION 
+            SELECT *
+            FROM path_enum
+            WHERE id = %s    
             ORDER BY title 
-                    ''', (id,))
+                    ''', (id,id))
         
         result = cursor.fetchall()
         cursor.close()
          
-        if(result == []):
-            if(not isinstance(GetNode(id=id, conn=conn), list)):
-                return("Нет узла с идентификатором: ") + str(id)
-            else:
+        if(result == [] ):            
+            return("Нет узла с идентификатором: ") + str(id)
+        
+        if(len(result) == 1):
                 return "Узел " + str(id) + " не иммеет потомков"
         
         return result
-    except:
-        conn.rollback() 
-        return("Не удалось получить прямых потомков")
+    # except:
+    #     conn.rollback() 
+    #     return("Не удалось получить прямых потомков")
 
 # Получение прямого родителя. На вход Идентификатор узла
 # ? return Array[id, title, parent_id]
@@ -338,7 +343,9 @@ def GetDirectParent(conn):
             return "Идентификатор  должен быть положительным целым числом"
         cursor = conn.cursor()        
         cursor.execute('''
-            SELECT * FROM path_enum WHERE path LIKE (
+            SELECT * 
+            FROM path_enum 
+            WHERE path LIKE (
                 SELECT
                 SUBSTRING(
                     path, 1, LENGTH(path) - POSITION(
@@ -347,18 +354,22 @@ def GetDirectParent(conn):
                 )
                 FROM path_enum WHERE id = %s
             )
+            UNION 
+            SELECT *
+            FROM path_enum
+            WHERE id = %s  
             ORDER BY title 
-
-                    ''', (id,))
+                    ''', (id,id))
         
         result = cursor.fetchall()
         cursor.close()
                   
         if(result == []):  
-            if(not isinstance(GetNode(id=id, conn=conn), list)):          
-                return("Нет узла с идентификатором: ") + str(id)
-            else:
-                return "Узел " + str(id) + " не иммеет прямого родителя"
+
+            return("Нет узла с идентификатором: ") + str(id)
+        
+        if(len(result) == 1):
+            return "Узел " + str(id) + " не иммеет прямого родителя"
         
         return result
 
@@ -379,6 +390,7 @@ def GetAllDescendants(id = "", conn = psycopg2.connect):
             if(id <= 0):
                 return "Идентификатор  должен быть положительным целым числом"
         curent_node = GetNode(id=id, conn=conn)
+        
         if(not isinstance(curent_node,list)):
             return("Нет узла с идентификатором: ") + str(id)
 
@@ -397,9 +409,12 @@ def GetAllDescendants(id = "", conn = psycopg2.connect):
 
         cursor.close()
          
-        if(result == []):        
-            return "Узел " + str(id) + " не иммеет потомков"
-            
+        if(result == [] ):            
+            return("Нет узла с идентификатором: ") + str(id)
+        
+        if(len(result) == 1):
+                return "Узел " + str(id) + " не иммеет потомков"
+        
         
         return result
 
@@ -432,10 +447,11 @@ def GetAllParents(conn):
         cursor.close()
          
         if(result == []):  
-            if(not isinstance(GetNode(id=id, conn=conn),list)):          
-                return("Нет узла с идентификатором: ") + str(id)
-            else:
-                return "Узел " + str(id) + " не иммеет родителей"
+
+            return("Нет узла с идентификатором: ") + str(id)
+        
+        if(len(result) == 1):
+            return "Узел " + str(id) + " не иммеет прямого родителя"
         
         return result
 
