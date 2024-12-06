@@ -11,7 +11,7 @@ steps = [
     CREATE TABLE path_enum(
          id SERIAL PRIMARY KEY,
          title VARCHAR(255) UNIQUE CHECK(TRIM(title) = title AND LENGTH(title) != 0),
-         path VARCHAR(255) UNIQUE CHECK(TRIM(title) = title AND LENGTH(title) != 0)
+         path VARCHAR(255) UNIQUE CHECK(TRIM(title) = title AND LENGTH(title) != 0) NOT NULL
          )
          ''')
 ]

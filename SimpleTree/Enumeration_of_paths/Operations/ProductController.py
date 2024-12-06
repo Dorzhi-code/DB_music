@@ -141,6 +141,8 @@ def AddLeaf(conn):
         if(parent_id <= 0):
             return "Идентификатор родителя должен быть положительным целым числом"
 
+        if(isinstance(GetNode(conn=conn, id = parent_id), str)):
+            return "Нет такого родителя"
         cursor = conn.cursor()
         cursor.execute('''
             INSERT INTO path_enum (title) VALUES (%s)   
@@ -179,7 +181,8 @@ def DeleteLeaf(conn):
             return("Нет листа с таким идентификатором")
         
         descendants = GetAllDescendants(id = id, conn=conn)
-        if(not isinstance(descendants, list) or len(descendants) > 1):
+
+        if(not isinstance(descendants, str)):
             return "Узел с идентификатором: " + str(id) + " не является листом"
 
         cursor = conn.cursor()        
@@ -214,8 +217,12 @@ def DeleteSubtree(conn):
 
         if(not isinstance(GetNode(id=id, conn=conn), list)):
             return("Нет узла с таким идентификатором")
+        
+        descendants = GetAllDescendants(id, conn)
+        result = len(descendants)
+        if(isinstance(descendants, str)):
+            result = 0
 
-        result = len(GetAllDescendants(id, conn))
         cursor = conn.cursor()
         cursor.execute('''                   
             DELETE FROM path_enum WHERE id IN (
