@@ -64,8 +64,10 @@ def UpdateUser(conn):
     username = input("Введите имя пользователя: ")
     password = input("Введите пароль: ")
     email = input("Введите почту: ")
-
     hashed_password = hashlib.sha512(password.encode('utf-8')).hexdigest()
+    if(password == ''):
+        hashed_password=''
+        
     try:
         cursor = conn.cursor()
         cursor.execute("CALL update_user(%s, %s, %s, %s)",
