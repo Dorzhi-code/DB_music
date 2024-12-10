@@ -16,15 +16,15 @@ steps = [
     )
     LANGUAGE plpgsql AS $$
     BEGIN
-        cur_username := TRIM(cur_username);
-        cur_password := TRIM(cur_password);
-        cur_email := TRIM(cur_email);
+        cur_username := TRIM(regexp_replace(cur_username, '\s+', ' ', 'g'));
+        cur_password := TRIM(regexp_replace(cur_password, '\s+', ' ', 'g'));
+        cur_email := TRIM(regexp_replace(cur_email, '\s+', ' ', 'g'));
         IF LENGTH(cur_username) = 0 OR LENGTH(cur_password) = 0 OR LENGTH(cur_email) = 0 THEN
             RAISE EXCEPTION 'Parameters cannot be emprty or consist only of spaces';
         END IF;
 
-        IF NOT cur_email LIKE '%@%' OR NOT cur_email LIKE '%.%' THEN
-            RAISE EXCEPTION 'The mail is not valid';
+        IF NOT cur_email LIKE '%@%.%'  THEN
+            RAISE EXCEPTION 'The mail is not valid. Mail must be in the format {text@text.text}';
         END IF;
          
         INSERT INTO users (username, password, email) 
