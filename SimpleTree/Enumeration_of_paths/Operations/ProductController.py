@@ -121,7 +121,7 @@ def GetNodeByTitle(title = "" ,conn = psycopg2.connect):
 # Добавление листа в дерево. На вход Название, Идентификатор родителя
 # ? return id
 def AddLeaf(conn):
-    try:
+    # try:
         title = input("Введите название: ")        
         title = title.strip()
         if(title == ""):
@@ -145,7 +145,7 @@ def AddLeaf(conn):
             return "Нет такого родителя"
         cursor = conn.cursor()
         cursor.execute('''
-            INSERT INTO path_enum (title) VALUES (%s)   
+            INSERT INTO path_enum (title, path) VALUES (%s, ' ')   
             RETURNING id                     
                     ''', (title, ))
         id = cursor.fetchall()[0]
@@ -160,9 +160,9 @@ def AddLeaf(conn):
         cursor.close()
 
         return "Успешно добавили с идентификатором: " + str(id[0])    
-    except:
-        conn.rollback()
-        return("Не получилось добавить. ")
+    # except:
+    #     conn.rollback()
+    #     return("Не получилось добавить. ")
 
 # Удаление листа. На вход Идентификатор листа
 # ? return int (количество удаленных)
@@ -215,13 +215,14 @@ def DeleteSubtree(conn):
         if(id <= 0):
             return "Идентификатор  должен быть положительным целым числом"
 
-        if(not isinstance(GetNode(id=id, conn=conn), list)):
-            return("Нет узла с таким идентификатором")
+        if(isinstance(GetNode(id=id, conn=conn), str)):
+            return("Нет узла с идентификатором: ") + str(id)
+
         
         descendants = GetAllDescendants(id, conn)
         result = len(descendants)
         if(isinstance(descendants, str)):
-            result = 0
+            result = 1
 
         cursor = conn.cursor()
         cursor.execute('''                   
