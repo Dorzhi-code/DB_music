@@ -68,7 +68,7 @@ def UpdateUser(conn):
         print(e)
 
 def DeleteUser(conn):
-    user_id = input("Введите ID пользователя: ")    
+    user_id = input("Введите ID пользователя: ")
     try:
         cursor = conn.cursor()
         cursor.execute("CALL delete_user(%s)", (user_id.strip(),))
