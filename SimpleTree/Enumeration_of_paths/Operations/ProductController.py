@@ -2,68 +2,6 @@ import psycopg2
 from psycopg2.errorcodes import UNIQUE_VIOLATION
 from psycopg2 import errors
 
-# # Получить идентификатор родителя
-# def get_parent_num(st=""):
-#     result = ''
-#     for i in st:
-#         if i.isdigit():
-#             result+=i
-#         else:
-#             result+=','
-
-#     result1 = result.split(',')
-#     output = []
-    
-#     for i in result1:
-#         if i != '':
-#             output.append(i)
-            
-#     if(len(output) >= 2):
-#         return int(output[-2])
-#     return None
-
-# # Получить уровень 
-# def get_level(st):
-#     result = 0
-#     for i in st:
-#         if(i == '/'):
-#             result+=1
-#     return result
-
-# # Многоуровневый вывод
-# def PrintBeautifully(products=[]):
-#     print()
-#     if(not isinstance(products, list)):
-#         print(products)
-#         return
-    
-#     from collections import defaultdict
-#     tree = defaultdict(list)
-#     root_level = 1e9
-#     root_product = []
-#     for product in products:
-#         num = get_parent_num(product[2])        
-#         tree[num].append(product)      
-#         level = get_level(product[2])  
-#         if( root_level > level):
-#             root_level = level
-#             root_product = product
-
-#     def format_tree(node_id, level = 1):
-#         result = []
-        
-#         for child in tree[node_id]:
-#             result.append(str(child[0]).rjust(3) +  '    ' * level + child[1])
-#             result.extend(format_tree(child[0], level + 1))
-#         return result
-
-#     parent = get_parent_num(root_product[2])
-#     result = format_tree(parent)
-#     for item in result:
-#         print(item)
-
-
-# id, title, path, level, sort_key
 def PrintBeautifully(products=[]):
     print()
     if(not isinstance(products, list)):
@@ -448,7 +386,7 @@ def GetAllDescendants(id = "", conn = psycopg2.connect):
 # Получение всех родителей. На вход Идентификатор узла
 # ? return Array[id, title, parent_id]
 def GetAllParents(conn):
-    # try:
+    try:
         id = input("Введите идентификатор: ")
         id = id.strip()
         if(not id.isdigit()):
@@ -486,9 +424,9 @@ def GetAllParents(conn):
         
         return result
 
-    # except:
-    #     conn.rollback()
-    #     return("Не удалось получить всех родителей")
+    except:
+        conn.rollback()
+        return("Не удалось получить всех родителей")
 
 
 def GetAll(conn):
