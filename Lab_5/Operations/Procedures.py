@@ -7,9 +7,9 @@ def AddUser(conn):
 
     while '  ' in password:
         password = password.replace('  ', ' ').strip()    
-    hashed_password = hashlib.sha512(password.encode('utf-8')).hexdigest()
-    if(password == ''):
-        hashed_password=''
+    hashed_password = ''
+    if(password != ''):        
+        hashed_password = hashlib.sha512(password.encode('utf-8')).hexdigest()
     
     try:
         cursor = conn.cursor()
@@ -53,14 +53,14 @@ def UpdateUser(conn):
 
     while '  ' in password:
         password = password.replace('  ', ' ').strip()
-    hashed_password = hashlib.sha512(password.encode('utf-8')).hexdigest()
-    if(password == ''):
-        hashed_password=''
+    hashed_password = ''
+    if(password != ''):        
+        hashed_password = hashlib.sha512(password.encode('utf-8')).hexdigest()
         
     try:
         cursor = conn.cursor()
         cursor.execute("CALL update_user(%s, %s, %s, %s)",
-                        (user_id.strip(), username, hashed_password, email))
+                        (user_id, username, hashed_password, email))
         conn.commit()
         print("Пользователь успешно обновлен.")
     except Exception as e:
@@ -71,7 +71,7 @@ def DeleteUser(conn):
     user_id = input("Введите ID пользователя: ")
     try:
         cursor = conn.cursor()
-        cursor.execute("CALL delete_user(%s)", (user_id.strip(),))
+        cursor.execute("CALL delete_user(%s)", (user_id,))
         conn.commit()
         print("Пользователь успешно удален.")
     except Exception as e:
