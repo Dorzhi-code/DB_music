@@ -24,9 +24,13 @@ def GetAllUsers(conn):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM get_all_users()")
     rows = cursor.fetchall()
+
+    from prettytable import PrettyTable
+    table = PrettyTable(['ID', 'Username', 'Password', 'E-mail'])    
     for row in rows:
-        print(f'|{row[0]}|{row[1]}|{row[2]}|{row[3]}|')
-    
+        table.add_row([row[0], row[1], row[2][10:100], row[3]])
+    print(table)
+
 
 def GetUser(conn):
     user_id = input("Введите ID пользователя: ")    
