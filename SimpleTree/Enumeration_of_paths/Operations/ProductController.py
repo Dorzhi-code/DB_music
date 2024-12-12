@@ -338,7 +338,7 @@ def GetDirectParent(conn):
 # Получение всех потомков. На вход Идентификатор узла
 # ? return Array[id, title, parent_id]
 def GetAllDescendants(id = "", conn = psycopg2.connect):
-    # try:         
+    try:         
         if(id == ""):            
             id = input("Введите идентификатор: ")
             id = id.strip()
@@ -358,8 +358,8 @@ def GetAllDescendants(id = "", conn = psycopg2.connect):
                 SELECT pe.id, pe.title, pe.path, 0 AS level, pe.path ||'' AS sort_key
                 FROM path_enum pe
                 WHERE pe.id = %s
-                UNION 
-                SELECT p.id, p.title, p.path, t.level + 1, t.sort_key ||  p.title AS sort_key
+                UNION ALL
+                SELECT p.id, p.title, p.path, t.level + 1, t.sort_key || p.title || '/' AS sort_key
                 FROM path_enum p INNER JOIN tree t ON p.path = t.path ||  p.id || '/'
             )
             SELECT id, title, path, level
@@ -379,9 +379,9 @@ def GetAllDescendants(id = "", conn = psycopg2.connect):
         
         return result
 
-    # except:
-    #     conn.rollback()
-    #     return("Не удалось получить всех потомков")
+    except:
+        conn.rollback()
+        return("Не удалось получить всех потомков")
 
 # Получение всех родителей. На вход Идентификатор узла
 # ? return Array[id, title, parent_id]
