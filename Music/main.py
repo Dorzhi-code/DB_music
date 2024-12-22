@@ -37,10 +37,9 @@ while(True):
         break
 
     elif(number_of_acion == 1): # Записать трек
-        try:
-            print(TrackController.Create(conn))
-        except:
-            print("Не получилось записать.")
+        
+        print(TrackController.Create(conn))
+        
 
     elif(number_of_acion == 2): # Получить все треки
         tracks = TrackController.RetrieveAll(conn)

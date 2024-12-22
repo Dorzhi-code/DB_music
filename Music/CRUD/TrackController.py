@@ -14,7 +14,7 @@ def PrintPrettyTable(tracks=[]):
 # Создание экземляра трека. На вход: (string, string, string, int)
 # ? return id
 def Create(conn):
-    try:
+    # try:
         title = input("Введите название песни: ")
         title = title.strip()
         if(title == ""):
@@ -52,8 +52,8 @@ def Create(conn):
         cursor.close()
 
         return ("Успешно добавили с идентификатором: " + str(result[0][0]))
-    except:
-        return "Не получилось добавить."
+    # except:
+    #     return "Не получилось добавить."
 
 # Получение всех экземляров трека. 
 # ? return Array[Aray[track_id, title, performers, album, duration]]
