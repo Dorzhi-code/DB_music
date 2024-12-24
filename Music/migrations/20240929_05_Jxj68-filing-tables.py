@@ -63,7 +63,7 @@ steps = [
     INSERT INTO playlist_track (track_id, playlist_id, order_num)
     VALUES
                (1 , 1, 1 ),
-               (2 , 1, NULL ),
+               (2 , 1, 2 ),
                (4 , 1, 4 ),
                (10 , 1, 3 ),
                (5 , 2, 5 ),

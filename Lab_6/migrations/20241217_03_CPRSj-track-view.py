@@ -17,17 +17,17 @@ steps = [
             CREATE OR REPLACE VIEW playlist_info  AS
             SELECT             
                 p.playlist_id,
-                p.title playlist,
-                p.order_num playlist_order,
+                p.title playlist,                
                 t.track_id,  
                 t.title AS track, 
                 t.performers, 
                 t.album,                 
-                p_t.order_num track_order
+                p_t.order_num track_order,
+                p_t.created_at
             FROM track t 
                 JOIN playlist_track p_t ON t.track_id = p_t.track_id 
                 RIGHT JOIN playlist p ON p_t.playlist_id = p.playlist_id   
-            ORDER BY p.playlist_id    
+            ORDER BY p.playlist_id ASC, p_t.order_num ASC, t.created_at ASC
         '''
     ),
     step(
@@ -38,8 +38,7 @@ steps = [
                 IF (TG_OP = 'UPDATE') THEN
                     UPDATE playlist
                     SET 
-                        title = NEW.playlist,
-                        order_num = NEW.playlist_order
+                        title = NEW.playlist
                     WHERE playlist_id = OLD.playlist_id;
 
                     UPDATE playlist_track

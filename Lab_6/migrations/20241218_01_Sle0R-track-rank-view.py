@@ -15,23 +15,18 @@ steps = [
     step(
         '''
             CREATE MATERIALIZED VIEW track_stats AS
-            SELECT DISTINCT 
+            SELECT  
                 t.track_id,
                 t.title, 
                 t.performers, 
                 t.album, 
-                COUNT(p_t.playlist_id) OVER (PARTITION BY p_t.track_id ) rank
+                RANK() OVER (ORDER BY COUNT(p_t.playlist_id) DESC) rank_cnt_inputs_in_playlists,
+                COUNT(p_t.playlist_id)  || '/' ||  (SELECT COUNT(playlist_id) FROM playlist) inputs_in_playlist_OF_all_playlists
+                
             FROM track t INNER JOIN playlist_track p_t ON t.track_id = p_t.track_id      
-            UNION
-            SELECT DISTINCT 
-                t.track_id,
-                t.title, 
-                t.performers, 
-                t.album, 
-                0 rank
-            FROM track t
-            WHERE track_id NOT IN (SELECT track_id FROM playlist_track)
-            ORDER BY rank DESC        
+            GROUP BY t.track_id
+            ORDER BY rank_cnt_inputs_in_playlists, t.title
+                 
         '''
     ),
     step(
