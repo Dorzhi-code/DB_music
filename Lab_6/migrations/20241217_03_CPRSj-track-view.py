@@ -23,7 +23,7 @@ steps = [
                 t.performers, 
                 t.album,                 
                 p_t.order_num track_order,
-                p_t.created_at
+                p_t.created_at track_added_at
             FROM track t 
                 JOIN playlist_track p_t ON t.track_id = p_t.track_id 
                 RIGHT JOIN playlist p ON p_t.playlist_id = p.playlist_id   

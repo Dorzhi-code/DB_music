@@ -1,7 +1,6 @@
 UPDATE playlist_info
 SET
 playlist = 'For test',
-playlist_order = 2,
 track_order = 9
 WHERE playlist_id = 2  AND  track_id = 7
 
