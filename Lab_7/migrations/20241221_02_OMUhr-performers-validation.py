@@ -26,8 +26,7 @@ steps = [
             LANGUAGE plpgsql
             AS $$
             BEGIN
-                NEW.performers = TRIM(regexp_replace(NEW.performers, '\s+', ' ', 'g'));      
-                NEW.performers = UPPER(SUBSTRING(NEW.performers FROM 1 FOR 1)) || SUBSTRING(NEW.performers FROM 2 FOR length(NEW.performers));
+                NEW.performers = TRIM(regexp_replace(NEW.performers, '\s+', ' ', 'g'));                                   
                 RETURN NEW;
             END;
             $$;

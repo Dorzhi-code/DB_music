@@ -28,12 +28,6 @@ steps = [
             BEGIN
                 NEW.album = TRIM(regexp_replace(NEW.album, '\s+', ' ', 'g'));      
 
-                IF NEW.album ~ '[a-zA-Z]' THEN
-                    NEW.album = INITCAP(NEW.album);   
-                ELSE             
-                    NEW.album = UPPER(SUBSTRING(NEW.album FROM 1 FOR 1)) || SUBSTRING(NEW.album FROM 2 FOR length(NEW.album));
-                END IF;
-                
                 RETURN NEW;
             END;
             $$;

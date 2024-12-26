@@ -28,13 +28,6 @@ steps = [
             BEGIN
                 NEW.title = TRIM(regexp_replace(NEW.title, '\s+', ' ', 'g'));
                 
-                IF NEW.title ~ '[a-zA-Z]' THEN
-                    NEW.title = INITCAP(NEW.title);   
-                ELSE             
-                    NEW.title = UPPER(SUBSTRING(NEW.title FROM 1 FOR 1)) || SUBSTRING(NEW.title FROM 2 FOR length(NEW.title));
-                END IF;
-
-
                 RETURN NEW;
             END;
             $$;

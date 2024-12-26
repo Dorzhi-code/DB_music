@@ -27,7 +27,7 @@ steps = [
             FROM track t 
                 JOIN playlist_track p_t ON t.track_id = p_t.track_id 
                 RIGHT JOIN playlist p ON p_t.playlist_id = p.playlist_id   
-            ORDER BY p.playlist_id ASC, p_t.order_num ASC, t.created_at ASC
+            ORDER BY p.title ASC, p.playlist_id, p_t.order_num ASC, t.created_at ASC
         '''
     ),
     step(
