@@ -13,7 +13,7 @@ steps = [
                title VARCHAR(255) NOT NULL CHECK(TRIM(title) = title AND LENGTH(title) != 0),
                performers VARCHAR(400) NOT NULL CHECK(TRIM(title) = title AND LENGTH(title) != 0),
                album VARCHAR(255) NOT NULL CHECK(TRIM(title) = title AND LENGTH(title) != 0),
-               duration SMALLINT NOT NULL CHECK (duration > 0),
+               duration SMALLINT NOT NULL CHECK (duration > 0.0),
                created_at timestamp NOT NULL default now()            
                );
                ''')
