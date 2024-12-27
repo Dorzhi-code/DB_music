@@ -26,7 +26,7 @@ steps = [
             LANGUAGE plpgsql
             AS $$
             BEGIN
-                IF NEW.created_at > CURRENT_TIMESTAMP THEN                
+                IF NEW.created_at > CURRENT_TIMESTAMP THEN       
                     NEW.created_at = CURRENT_TIMESTAMP;
                 END IF;
                 RETURN NEW;

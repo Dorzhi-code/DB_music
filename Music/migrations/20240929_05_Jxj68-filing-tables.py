@@ -54,7 +54,7 @@ steps = [
                (8, 'Wellerman Sea Shanty', 'Nathan Evans', 'Wellerman', 275),
                (9, 'Mockingbird', 'Eminem', 'Curtain Call: The Hits', 251),
                (10, 'Believer', 'Imagine Dragons', 'Throwback Hits', 204),
-               (11, 'Lovely', 'Billie Eilish\tKhalid', 'Dont Smile at Me', 200 );
+               (11, 'Lovely', 'Billie Eilish\u200BKhalid', 'Dont Smile at Me', 200 );
                '''),
     step('''
         ALTER SEQUENCE track_track_id_seq RESTART WITH 12;
